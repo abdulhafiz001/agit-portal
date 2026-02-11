@@ -1,0 +1,19 @@
+What is the capital of France?|Paris|London|Berlin|Rome
+
+Which planet is known as the Red Planet?|Earth|Mars|Jupiter|Venus
+
+What is 5 + 3?|6|7|8|9
+
+Which animal is known as the King of the Jungle?|Elephant|Tiger|Lion|Giraffe
+
+What color do you get by mixing red and blue?|Green|Purple|Orange|Yellow
+
+How many days are there in a week?|5|6|7|8
+
+Which gas do humans need to breathe?|Carbon Dioxide|Oxygen|Nitrogen|Hydrogen
+
+What is the boiling point of water (in °C)?|50|75|100|150
+
+Which continent is Egypt located in?|Asia|Europe|Africa|Australia
+
+What is the opposite of “hot”?|Warm|Cold|Cool|Boiling
