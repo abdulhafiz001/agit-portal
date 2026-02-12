@@ -99,7 +99,18 @@ const API = {
 
         try {
             const response = await fetch(APP_URL + url, config);
-            const data = await response.json();
+            const contentType = response.headers.get('content-type') || '';
+            let data = null;
+
+            if (contentType.includes('application/json')) {
+                data = await response.json();
+            } else {
+                const raw = await response.text();
+                data = {
+                    success: false,
+                    message: raw ? raw.slice(0, 300) : `Request failed with status ${response.status}`
+                };
+            }
             
             if (response.status === 401) {
                 Toast.error('Session expired. Redirecting to login...');
@@ -107,10 +118,15 @@ const API = {
                 return null;
             }
 
+            if (!response.ok && (!data || !data.success)) {
+                const msg = data?.message || `Request failed with status ${response.status}`;
+                Toast.error(msg);
+            }
+
             return data;
         } catch (error) {
             console.error('API Error:', error);
-            Toast.error('Network error. Please try again.');
+            Toast.error('Network error. Please check your connection and server logs.');
             return null;
         }
     },
