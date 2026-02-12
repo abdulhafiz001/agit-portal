@@ -16,8 +16,13 @@ initSession();
 
 // Get request URI and parse route
 $requestUri = $_SERVER['REQUEST_URI'];
-$basePath = '/agit-portal';
-$route = str_replace($basePath, '', parse_url($requestUri, PHP_URL_PATH));
+$requestPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
+$basePath = rtrim((string) parse_url(APP_URL, PHP_URL_PATH), '/');
+if ($basePath && strpos($requestPath, $basePath) === 0) {
+    $route = substr($requestPath, strlen($basePath));
+} else {
+    $route = $requestPath;
+}
 $route = rtrim($route, '/') ?: '/';
 $method = $_SERVER['REQUEST_METHOD'];
 
