@@ -104,7 +104,7 @@
 
         <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
-        <div class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+        <div class="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0">
             <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
                 <div class="flex items-center justify-between px-4 lg:px-6 py-3">
                     <div class="flex items-center gap-4">
@@ -125,7 +125,7 @@
                 </div>
             </header>
 
-            <main class="flex-1 p-4 lg:p-6 page-content overflow-auto">
+            <main class="flex-1 p-4 lg:p-6 page-content overflow-auto min-w-0">
                 <?php require VIEWS_PATH . '/student/' . $currentPage . '.php'; ?>
             </main>
         </div>

@@ -5,7 +5,7 @@
             <h2 class="text-xl font-bold text-gray-900">Subjects Management</h2>
             <p class="text-sm text-gray-500 mt-1">Manage all subjects and courses</p>
         </div>
-        <button onclick="openAddSubject()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+        <button onclick="openAddSubject()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium w-full sm:w-auto">
             <i class="fas fa-plus mr-2"></i>Add Subject
         </button>
     </div>
@@ -21,8 +21,8 @@
 
     <!-- Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="table-responsive">
-            <table class="data-table">
+        <div class="table-responsive overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] sm:max-h-[65vh]">
+            <table class="data-table" style="min-width: 860px;">
                 <thead>
                     <tr>
                         <th>Subject</th>

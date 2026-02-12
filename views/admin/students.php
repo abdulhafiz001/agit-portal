@@ -6,11 +6,11 @@
             <h2 class="text-xl font-bold text-gray-900">Students Management</h2>
             <p class="text-sm text-gray-500 mt-1">Manage all registered students</p>
         </div>
-        <div class="flex gap-2">
-            <button onclick="Modal.open('import-modal')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium">
+        <div class="flex flex-wrap gap-2">
+            <button onclick="Modal.open('import-modal')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium w-full sm:w-auto">
                 <i class="fas fa-file-csv mr-2"></i>Import
             </button>
-            <button onclick="openAddStudent()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+            <button onclick="openAddStudent()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium w-full sm:w-auto">
                 <i class="fas fa-plus mr-2"></i>Add Student
             </button>
         </div>
@@ -50,8 +50,8 @@
 
     <!-- Table View (hidden by default) -->
     <div id="table-view" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hidden">
-        <div class="overflow-x-auto overflow-y-auto max-h-[65vh]">
-            <table class="data-table w-full">
+        <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] sm:max-h-[65vh] table-responsive">
+            <table class="data-table w-full" style="min-width: 860px;">
                 <thead class="sticky top-0 z-10">
                     <tr>
                         <th>Student</th>

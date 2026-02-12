@@ -6,15 +6,15 @@
     </div>
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <div class="flex flex-col sm:flex-row gap-3">
-            <select id="r-class" onchange="loadResults()" class="px-3 py-2.5 border border-gray-200 rounded-lg text-sm"><option value="">All Classes</option></select>
-            <select id="r-subject" onchange="loadResults()" class="px-3 py-2.5 border border-gray-200 rounded-lg text-sm"><option value="">All Subjects</option></select>
+            <select id="r-class" onchange="loadResults()" class="w-full sm:w-auto px-3 py-2.5 border border-gray-200 rounded-lg text-sm"><option value="">All Classes</option></select>
+            <select id="r-subject" onchange="loadResults()" class="w-full sm:w-auto px-3 py-2.5 border border-gray-200 rounded-lg text-sm"><option value="">All Subjects</option></select>
             <div class="flex-1"><div class="relative"><i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                 <input type="text" id="r-search" placeholder="Search student..." class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm outline-none" oninput="filterResults()"></div></div>
         </div>
     </div>
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="table-responsive">
-            <table class="data-table"><thead><tr>
+        <div class="table-responsive overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] sm:max-h-[65vh]">
+            <table class="data-table" style="min-width: 980px;"><thead><tr>
                 <th>Student</th><th>Matric No</th><th>Subject</th><th>Class</th>
                 <th class="text-center">CA</th><th class="text-center">Exam</th><th class="text-center">Total</th>
                 <th class="text-center">Grade</th><th class="text-center">Remark</th>

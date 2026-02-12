@@ -428,6 +428,7 @@
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="lecturers" class="adm-page rounded border-gray-300 text-purple-600"> Lecturers</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="subjects" class="adm-page rounded border-gray-300 text-purple-600"> Subjects</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="classes" class="adm-page rounded border-gray-300 text-purple-600"> Classes</label>
+                    <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="schedules" class="adm-page rounded border-gray-300 text-purple-600"> Schedules</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="exams" class="adm-page rounded border-gray-300 text-purple-600"> Exams</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="results" class="adm-page rounded border-gray-300 text-purple-600"> Results</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="reports" class="adm-page rounded border-gray-300 text-purple-600"> Reports</label>

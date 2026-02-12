@@ -7,6 +7,12 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* Sidebar styles */
 .sidebar {
     transition: width 300ms ease;
@@ -81,6 +87,15 @@
     color: #64748b;
     letter-spacing: 0.05em;
     border-bottom: 2px solid #e2e8f0;
+}
+
+/* Sticky header when table is in scrollable container */
+.table-responsive .data-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8fafc;
+    box-shadow: 0 1px 0 0 #e2e8f0;
 }
 
 .data-table tbody tr {
@@ -166,6 +181,11 @@
 /* Page transition */
 .page-content {
     animation: fadeIn 300ms ease;
+    min-width: 0;
+}
+
+.page-content > * {
+    min-width: 0;
 }
 
 @keyframes fadeIn {
@@ -176,10 +196,18 @@
 /* Responsive table wrapper */
 .table-responsive {
     overflow-x: auto;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    width: 100%;
 }
 
-/* Split screen login */
+.table-responsive .data-table {
+    width: max-content;
+    min-width: 100%;
+}
+
+/* Split screen login - Mobile responsive */
 .login-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -192,6 +220,35 @@
     }
     .login-brand {
         display: none;
+    }
+}
+
+/* Login form panel - mobile optimized */
+@media (max-width: 768px) {
+    .login-split .flex.items-center.justify-center {
+        padding: 1.5rem 1rem !important;
+        min-height: 100vh;
+        align-items: flex-start;
+        padding-top: 2rem !important;
+    }
+    .login-split .max-w-md {
+        width: 100%;
+    }
+    .login-split h1 {
+        font-size: 1.5rem !important;
+    }
+    .login-split h2 {
+        font-size: 1.5rem !important;
+    }
+    .login-split .text-lg {
+        font-size: 0.9375rem !important;
+    }
+}
+
+/* Compact login on very small screens */
+@media (max-width: 480px) {
+    .login-split .flex.items-center.justify-center {
+        padding: 1rem 0.75rem !important;
     }
 }
 
@@ -253,8 +310,7 @@
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        margin: 0 -0.5rem;
-        padding: 0 0.5rem;
+        max-height: none !important;
     }
     
     /* Badge sizing on mobile */
@@ -311,10 +367,6 @@
     transition: opacity 200ms;
 }
 
-.table-responsive:not(:has(table.w-full)) .table-responsive::after {
-    opacity: 1;
-}
-
 /* Form input sizing on mobile */
 @media (max-width: 640px) {
     input[type="text"],
@@ -332,6 +384,20 @@
     /* Compact sidebar for mobile */
     #sidebar {
         width: 260px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        overflow-y: auto;
+    }
+
+    .login-split {
+        min-height: auto;
+    }
+
+    .login-split .flex.items-center.justify-center {
+        min-height: auto;
     }
 }
 

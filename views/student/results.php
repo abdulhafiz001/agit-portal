@@ -5,23 +5,25 @@
             <h2 class="text-xl font-bold text-gray-900">My Results</h2>
             <p class="text-sm text-gray-500 mt-1">View your academic performance and exam results</p>
         </div>
-        <button onclick="downloadResult()" id="download-btn" class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium hidden"><i class="fas fa-download mr-2"></i>Download Result</button>
+        <button onclick="downloadResult()" id="download-btn" class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium hidden w-full sm:w-auto"><i class="fas fa-download mr-2"></i>Download Result</button>
     </div>
 
     <!-- Summary Cards -->
-    <div id="result-summary" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+    <div id="result-summary" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
 
     <!-- Performance Chart -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-5 overflow-hidden">
         <h4 class="text-sm font-semibold text-gray-900 mb-4">Subject Performance</h4>
-        <canvas id="perfChart" height="180"></canvas>
+        <div class="relative w-full chart-container">
+            <canvas id="perfChart"></canvas>
+        </div>
     </div>
 
     <!-- Subject Scores -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="p-4 border-b border-gray-100"><h3 class="text-sm font-semibold text-gray-900"><i class="fas fa-book-open mr-2 text-blue-600"></i>Subject Scores</h3></div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+        <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] sm:max-h-[65vh] table-responsive">
+            <table class="w-full text-sm" style="min-width: 860px;">
                 <thead class="bg-gray-50"><tr>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">Subject</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">Class</th>
@@ -39,8 +41,8 @@
     <!-- Exam Results -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="p-4 border-b border-gray-100"><h3 class="text-sm font-semibold text-gray-900"><i class="fas fa-laptop-code mr-2 text-indigo-600"></i>Exam Results (CBT)</h3></div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+        <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] sm:max-h-[65vh] table-responsive">
+            <table class="w-full text-sm" style="min-width: 760px;">
                 <thead class="bg-gray-50"><tr>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">Exam</th>
                     <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500">Subject</th>
@@ -80,7 +82,12 @@ async function loadResults() {
                     { label: 'CA Score', data: scores.map(s => s.ca_score), backgroundColor: '#3b82f6', borderRadius: 4 },
                     { label: 'Exam Score', data: scores.map(s => s.exam_score), backgroundColor: '#8b5cf6', borderRadius: 4 }
                 ]
-            }, options: { responsive: true, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, max: 100 } }, plugins: { legend: { position: 'bottom' } } }
+            }, options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, max: 100 } },
+                plugins: { legend: { position: 'bottom' } }
+            }
         });
     }
 
