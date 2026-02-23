@@ -55,6 +55,7 @@
                 <div>
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Exams Created</p>
                     <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-exams">--</p>
+                    <p class="text-xs text-gray-400 mt-1" id="stat-exams-marked-label">Marked: --</p>
                 </div>
                 <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
                     <i class="fas fa-file-alt text-purple-600 text-xl"></i>
@@ -66,7 +67,7 @@
                 <div>
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Assignments</p>
                     <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-assignments">--</p>
-                    <p class="text-xs text-gray-400 mt-1">Posted</p>
+                    <p class="text-xs text-gray-400 mt-1">Set · <span id="stat-assignments-viewed">--</span> viewed</p>
                 </div>
                 <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
                     <i class="fas fa-tasks text-orange-600 text-xl"></i>
@@ -169,7 +170,11 @@ async function loadFacultyDashboard() {
     document.getElementById('stat-subjects').textContent = stats.total_subjects;
     document.getElementById('stat-students').textContent = stats.total_students;
     document.getElementById('stat-exams').textContent = stats.total_exams;
+    const examsMarkedEl = document.getElementById('stat-exams-marked-label');
+    if (examsMarkedEl && stats.exams_marked !== undefined) examsMarkedEl.textContent = 'Marked: ' + stats.exams_marked;
     if (stats.assignment_count !== undefined) document.getElementById('stat-assignments').textContent = stats.assignment_count;
+    const viewedEl = document.getElementById('stat-assignments-viewed');
+    if (viewedEl && stats.assignments_viewed !== undefined) viewedEl.textContent = stats.assignments_viewed;
     if (stats.today_classes !== undefined) document.getElementById('stat-today').textContent = stats.today_classes;
     if (stats.material_count !== undefined) document.getElementById('stat-materials').textContent = stats.material_count;
     

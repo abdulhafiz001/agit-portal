@@ -52,8 +52,8 @@ Create a database (example):
 Import:
 
 1. `sql/schema.sql`
-2. Optional migration SQL files only if needed for existing/older DB
-3. If assignment creation fails on older MySQL/MariaDB, run: `sql/003_assignments_compatibility.sql`
+2. Run migration `sql/004_courses_cms_forgot_password.sql` for Courses CMS, contact form, forgot password, course images/topics/duration
+3. Optional: `sql/002_add_profile_picture_lecturers.sql`, `sql/003_assignments_compatibility.sql` if needed
 
 ## Step 4: Configure DB connection
 
@@ -75,6 +75,16 @@ Set APP_URL in `.htaccess` (recommended):
 ```apache
 SetEnv APP_URL http://localhost/agit-portal
 ```
+
+## Step 5b: Email (Contact form & Forgot password)
+
+1. Install PHPMailer: `composer install`
+2. In Admin Panel → Settings → Email/SMTP tab, configure:
+   - SMTP Host (e.g. smtp.gmail.com)
+   - SMTP Username (your email)
+   - SMTP Password (App Password for Gmail)
+   - SMTP Port: 465 (SSL)
+3. Contact form sends to admin@agitsolutionsng.com
 
 ## Step 6: Permissions
 

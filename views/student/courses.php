@@ -15,7 +15,7 @@ async function loadMyCourses() {
     const data = await API.get('/api/student/courses');
     if (!data || !data.success) return;
     
-    document.getElementById('class-label').textContent = `Class: ${data.class_name} - ${data.data.length} subjects`;
+    document.getElementById('class-label').textContent = `Class: ${data.class_name} - ${data.data.length} courses`;
     
     const grid = document.getElementById('courses-grid');
     if (data.data.length === 0) {
@@ -33,18 +33,19 @@ async function loadMyCourses() {
     
     grid.innerHTML = data.data.map((s, i) => {
         const color = colors[i % colors.length];
+        const img = s.image ? `<img src="${APP_URL}/uploads/${s.image}" class="w-full h-36 object-cover" alt="">` : `<div class="h-36 bg-${color}-100 flex items-center justify-center"><i class="fas fa-book text-4xl text-${color}-600"></i></div>`;
+        const topicsHtml = s.topics && s.topics.length ? `<ul class="mt-2 space-y-0.5 text-xs text-gray-600">${s.topics.map(t => `<li><i class="fas fa-check text-${color}-500 mr-1 text-xs"></i>${escapeHtml(t)}</li>`).join('')}</ul>` : '';
         return `
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
-            <div class="h-2 bg-${color}-500"></div>
+            ${img}
             <div class="p-5">
-                <div class="flex items-start justify-between mb-3">
-                    <div class="w-10 h-10 bg-${color}-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-book text-${color}-600"></i>
-                    </div>
-                    <span class="font-mono text-xs bg-gray-100 px-2 py-1 rounded">${escapeHtml(s.code)}</span>
+                <div class="flex items-start justify-between mb-2">
+                    <h4 class="font-semibold text-gray-900 text-sm">${escapeHtml(s.name)}</h4>
+                    <span class="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded">${escapeHtml(s.code)}</span>
                 </div>
-                <h4 class="font-semibold text-gray-900 text-sm mb-2">${escapeHtml(s.name)}</h4>
-                ${s.description ? `<p class="text-xs text-gray-500 mb-3 line-clamp-2">${escapeHtml(s.description)}</p>` : ''}
+                ${s.duration ? `<p class="text-xs text-blue-600 mb-1"><i class="fas fa-clock mr-1"></i>${escapeHtml(s.duration)}</p>` : ''}
+                ${s.description ? `<p class="text-xs text-gray-500 mb-2 line-clamp-2">${escapeHtml(s.description)}</p>` : ''}
+                ${topicsHtml}
                 ${s.lecturer_names ? `
                     <div class="flex items-center gap-2 text-xs text-gray-400 mt-3 pt-3 border-t border-gray-50">
                         <i class="fas fa-user"></i>

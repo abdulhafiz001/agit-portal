@@ -131,6 +131,7 @@
         </div>
     </div>
 
+    <script>window.APP_URL = <?= json_encode(APP_URL) ?>;</script>
     <script src="<?= APP_URL ?>/assets/js/app.js"></script>
     <script>
         function toggleSidebar() {

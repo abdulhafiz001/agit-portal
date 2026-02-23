@@ -1,0 +1,10 @@
+{
+    "name": "agit/academy-portal",
+    "description": "AGIT Academy Management System",
+    "require": {
+        "phpmailer/phpmailer": "^6.8"
+    },
+    "autoload": {
+        "files": []
+    }
+}

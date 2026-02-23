@@ -64,7 +64,13 @@
                     <p class="text-gray-500 mt-2">Sign in with your student credentials to continue.</p>
                 </div>
 
-                <form id="login-form" class="space-y-5">
+                <?php if (!empty($loginError)): ?>
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <?= htmlspecialchars($loginError) ?>
+                </div>
+                <?php endif; ?>
+                <form id="login-form" method="post" action="<?= APP_URL ?>/login/student" class="space-y-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
                         <div class="relative">
@@ -100,6 +106,16 @@
                         Sign In to Student Portal
                     </button>
                 </form>
+                <p class="text-center mt-4">
+                    <a href="<?= APP_URL ?>/forgot-password/student" class="text-sm text-blue-600 hover:underline">Forgot password?</a>
+                </p>
+
+                <?php if (!empty($_GET['reset']) && $_GET['reset'] === 'success'): ?>
+                <div class="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    Password reset successfully. You can now login.
+                </div>
+                <?php endif; ?>
 
                 <?php
                 $db = getDB();
@@ -116,8 +132,10 @@
         </div>
     </div>
 
+    <script>window.APP_URL = <?= json_encode(APP_URL) ?>;</script>
     <script src="<?= APP_URL ?>/assets/js/app.js"></script>
     <script>
+        const APP_URL = '<?= APP_URL ?>';
         function togglePassword() {
             const pwd = document.getElementById('password');
             const icon = document.getElementById('toggle-icon');

@@ -179,3 +179,42 @@ function getActivityLogs() {
     $stmt->execute($params);
     jsonResponse(['success' => true, 'data' => $stmt->fetchAll(), 'pagination' => $pagination]);
 }
+
+// Landing Page CMS - Courses to display
+function getCmsCourses() {
+    $db = getDB();
+    $col = $db->query("SHOW COLUMNS FROM subjects LIKE 'display_on_landing'")->fetch();
+    $hasDisplay = (bool) $col;
+    
+    if ($hasDisplay) {
+        $stmt = $db->query("SELECT id, name, code, COALESCE(display_on_landing, 1) as display_on_landing FROM subjects WHERE status = 'active' ORDER BY name");
+    } else {
+        $stmt = $db->query("SELECT id, name, code, 1 as display_on_landing FROM subjects WHERE status = 'active' ORDER BY name");
+    }
+    $courses = $stmt->fetchAll();
+    jsonResponse(['success' => true, 'data' => $courses]);
+}
+
+function updateCmsCourses() {
+    $db = getDB();
+    $data = getPostData();
+    $updates = $data['courses'] ?? [];
+    if (empty($updates)) jsonResponse(['success' => false, 'message' => 'No data.'], 400);
+    
+    try {
+        $db->query("ALTER TABLE subjects ADD COLUMN display_on_landing TINYINT(1) NOT NULL DEFAULT 1");
+    } catch (Exception $e) { /* column may exist */ }
+    
+    try {
+        $stmt = $db->prepare("UPDATE subjects SET display_on_landing = ? WHERE id = ?");
+        foreach ($updates as $item) {
+            if (isset($item['id'], $item['display'])) {
+                $stmt->execute([$item['display'] ? 1 : 0, (int)$item['id']]);
+            }
+        }
+    } catch (Exception $e) {
+        jsonResponse(['success' => false, 'message' => 'Run migration sql/004_courses_cms_forgot_password.sql first.'], 500);
+    }
+    logActivity('admin', $_SESSION['user_id'], 'update_cms', 'Updated landing page course display');
+    jsonResponse(['success' => true, 'message' => 'Display settings saved.']);
+}

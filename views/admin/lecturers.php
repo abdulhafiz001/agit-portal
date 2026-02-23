@@ -10,7 +10,7 @@
         </button>
     </div>
 
-    <!-- Search -->
+    <!-- Filters -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <div class="flex flex-col sm:flex-row gap-3">
             <div class="flex-1 relative">
@@ -23,19 +23,28 @@
                 <option value="active">Active</option>
                 <option value="restricted">Restricted</option>
             </select>
+            <div class="flex border border-gray-200 rounded-lg overflow-hidden">
+                <button onclick="setView('grid')" id="view-grid-btn" class="px-3 py-2 text-sm bg-blue-600 text-white"><i class="fas fa-th-large"></i></button>
+                <button onclick="setView('table')" id="view-table-btn" class="px-3 py-2 text-sm bg-white text-gray-500 hover:bg-gray-50"><i class="fas fa-list"></i></button>
+            </div>
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="table-responsive overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] sm:max-h-[65vh]">
-            <table class="data-table" style="min-width: 900px;">
-                <thead>
+    <!-- Grid View (default) -->
+    <div id="grid-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="col-span-full text-center py-8 text-gray-400">Loading...</div>
+    </div>
+
+    <!-- Table View (hidden by default) -->
+    <div id="table-view" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hidden">
+        <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] sm:max-h-[65vh] table-responsive">
+            <table class="data-table w-full" style="min-width: 900px;">
+                <thead class="sticky top-0 z-10">
                     <tr>
                         <th>Lecturer</th>
                         <th>Phone</th>
                         <th>Classes</th>
-                        <th>Subjects</th>
+                        <th>Courses</th>
                         <th>Status</th>
                         <th class="text-right">Actions</th>
                     </tr>
@@ -87,9 +96,9 @@
                 </div>
             </div>
             
-            <!-- Subjects Assignment -->
+            <!-- Courses Assignment -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Assign Subjects</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Assign Courses</label>
                 <div id="subjects-checkboxes" class="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3 space-y-2">
                     <div class="text-xs text-gray-400">Loading subjects...</div>
                 </div>
@@ -113,8 +122,19 @@
 
 <script>
 let currentPage = 1;
+let currentView = 'grid';
+let lecturersData = [];
 let allClasses = [];
 let allSubjects = [];
+
+function setView(view) {
+    currentView = view;
+    document.getElementById('grid-view').classList.toggle('hidden', view !== 'grid');
+    document.getElementById('table-view').classList.toggle('hidden', view !== 'table');
+    document.getElementById('view-grid-btn').className = `px-3 py-2 text-sm ${view === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`;
+    document.getElementById('view-table-btn').className = `px-3 py-2 text-sm ${view === 'table' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`;
+    if (lecturersData.length) renderLecturers(lecturersData);
+}
 
 async function loadOptions() {
     const [classData, subjectData] = await Promise.all([
@@ -140,6 +160,63 @@ function renderCheckboxes(containerId, items, selectedIds = [], labelKey = 'name
     `).join('');
 }
 
+function renderLecturerCard(l) {
+    const avatar = l.profile_picture 
+        ? `<img src="${APP_URL}/uploads/${l.profile_picture}" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm">`
+        : `<div class="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-xl border-2 border-white shadow-sm">${l.name.charAt(0).toUpperCase()}</div>`;
+    const classesBadge = l.classes.length ? l.classes.slice(0,2).map(c => `<span class="badge badge-info text-xs">${escapeHtml(c.name)}</span>`).join('') + (l.classes.length > 2 ? ` <span class="text-xs text-gray-400">+${l.classes.length-2}</span>` : '') : '<span class="text-gray-400 text-xs">None</span>';
+    const subjectsBadge = l.subjects.length ? l.subjects.slice(0,2).map(s => `<span class="badge badge-warning text-xs">${escapeHtml(s.code)}</span>`).join('') + (l.subjects.length > 2 ? ` <span class="text-xs text-gray-400">+${l.subjects.length-2}</span>` : '') : '<span class="text-gray-400 text-xs">None</span>';
+    return `<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition">
+        <div class="flex flex-col items-center text-center">
+            ${avatar}
+            <h4 class="font-semibold text-gray-900 text-sm mt-3 truncate w-full">${escapeHtml(l.name)}</h4>
+            <p class="text-xs text-gray-400 truncate w-full">${escapeHtml(l.email)}</p>
+            <p class="text-xs text-gray-500 mt-1">${l.phone || 'N/A'}</p>
+            <div class="mt-2 flex flex-wrap gap-1 justify-center">${classesBadge}</div>
+            <div class="mt-1 flex flex-wrap gap-1 justify-center">${subjectsBadge}</div>
+            <span class="mt-2 px-2 py-0.5 text-xs rounded-full ${l.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${l.status}</span>
+        </div>
+        <div class="flex justify-center gap-1 mt-3 pt-3 border-t border-gray-50">
+            <button onclick="editLecturer(${l.id})" class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg" title="Edit"><i class="fas fa-edit text-xs"></i></button>
+            <button onclick="deleteLecturer(${l.id})" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg" title="Delete"><i class="fas fa-trash text-xs"></i></button>
+        </div>
+    </div>`;
+}
+
+function renderLecturers(lecturers) {
+    const grid = document.getElementById('grid-view');
+    const tbody = document.getElementById('lecturers-table');
+    if (lecturers.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><i class="fas fa-chalkboard-teacher text-4xl mb-3 block"></i>No lecturers found</div>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No lecturers found</td></tr>';
+        return;
+    }
+    grid.innerHTML = lecturers.map(l => renderLecturerCard(l)).join('');
+    tbody.innerHTML = lecturers.map(l => `
+        <tr>
+            <td>
+                <div class="flex items-center gap-3">
+                    ${l.profile_picture ? `<img src="${APP_URL}/uploads/${l.profile_picture}" class="w-8 h-8 rounded-full object-cover">` : `<div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-semibold text-xs">${l.name.charAt(0).toUpperCase()}</div>`}
+                    <div>
+                        <div class="font-medium text-gray-900 text-sm">${escapeHtml(l.name)}</div>
+                        <div class="text-xs text-gray-400">${escapeHtml(l.email)}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="text-sm text-gray-600">${l.phone || '<span class="text-gray-400">N/A</span>'}</td>
+            <td><div class="flex flex-wrap gap-1">${l.classes.length ? l.classes.map(c => `<span class="badge badge-info text-xs">${escapeHtml(c.name)}</span>`).join('') : '<span class="text-gray-400 text-xs">None</span>'}</div></td>
+            <td><div class="flex flex-wrap gap-1">${l.subjects.length ? l.subjects.slice(0,3).map(s => `<span class="badge badge-warning text-xs">${escapeHtml(s.code)}</span>`).join('') + (l.subjects.length > 3 ? `<span class="text-xs text-gray-400">+${l.subjects.length-3}</span>` : '') : '<span class="text-gray-400 text-xs">None</span>'}</div></td>
+            <td><span class="badge ${l.status === 'active' ? 'badge-success' : 'badge-danger'}">${l.status}</span></td>
+            <td class="text-right">
+                <div class="flex items-center justify-end gap-1">
+                    <button onclick="editLecturer(${l.id})" class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg" title="Edit"><i class="fas fa-edit text-xs"></i></button>
+                    <button onclick="deleteLecturer(${l.id})" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg" title="Delete"><i class="fas fa-trash text-xs"></i></button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
 async function loadLecturers(page = 1) {
     currentPage = page;
     const search = document.getElementById('search-input').value;
@@ -151,59 +228,19 @@ async function loadLecturers(page = 1) {
     const data = await API.get(url);
     if (!data || !data.success) return;
     
-    const tbody = document.getElementById('lecturers-table');
-    if (data.data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400">No lecturers found</td></tr>';
-        document.getElementById('pagination').innerHTML = '';
-        return;
-    }
-    
-    tbody.innerHTML = data.data.map(l => `
-        <tr>
-            <td>
-                <div class="flex items-center gap-3">
-                    ${l.profile_picture 
-                        ? `<img src="${APP_URL}/uploads/${l.profile_picture}" class="w-8 h-8 rounded-full object-cover">`
-                        : `<div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-semibold text-xs">${l.name.charAt(0).toUpperCase()}</div>`
-                    }
-                    <div>
-                        <div class="font-medium text-gray-900 text-sm">${escapeHtml(l.name)}</div>
-                        <div class="text-xs text-gray-400">${escapeHtml(l.email)}</div>
-                    </div>
-                </div>
-            </td>
-            <td class="text-sm text-gray-600">${l.phone || '<span class="text-gray-400">N/A</span>'}</td>
-            <td>
-                <div class="flex flex-wrap gap-1">
-                    ${l.classes.length ? l.classes.map(c => `<span class="badge badge-info text-xs">${escapeHtml(c.name)}</span>`).join('') : '<span class="text-gray-400 text-xs">None</span>'}
-                </div>
-            </td>
-            <td>
-                <div class="flex flex-wrap gap-1">
-                    ${l.subjects.length ? l.subjects.slice(0,3).map(s => `<span class="badge badge-warning text-xs">${escapeHtml(s.code)}</span>`).join('') + (l.subjects.length > 3 ? `<span class="text-xs text-gray-400">+${l.subjects.length-3}</span>` : '') : '<span class="text-gray-400 text-xs">None</span>'}
-                </div>
-            </td>
-            <td><span class="badge ${l.status === 'active' ? 'badge-success' : 'badge-danger'}">${l.status}</span></td>
-            <td class="text-right">
-                <div class="flex items-center justify-end gap-1">
-                    <button onclick="editLecturer(${l.id})" class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg" title="Edit">
-                        <i class="fas fa-edit text-xs"></i>
-                    </button>
-                    <button onclick="deleteLecturer(${l.id})" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg" title="Delete">
-                        <i class="fas fa-trash text-xs"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    lecturersData = data.data;
+    renderLecturers(data.data);
     
     const p = data.pagination;
-    if (p.total_pages <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
-    let html = `<span class="text-xs text-gray-500">Showing ${p.offset+1}-${Math.min(p.offset+p.per_page, p.total)} of ${p.total}</span><div class="flex gap-1">`;
-    for (let i = 1; i <= p.total_pages; i++) {
-        html += `<button onclick="loadLecturers(${i})" class="px-3 py-1 text-xs rounded-lg ${i === p.current_page ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">${i}</button>`;
+    if (p && p.total_pages > 1) {
+        let html = `<span class="text-xs text-gray-500">Showing ${p.offset+1}-${Math.min(p.offset+p.per_page, p.total)} of ${p.total}</span><div class="flex gap-1 flex-wrap">`;
+        for (let i = 1; i <= p.total_pages; i++) {
+            html += `<button onclick="loadLecturers(${i})" class="px-3 py-1 text-xs rounded-lg ${i === p.current_page ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">${i}</button>`;
+        }
+        document.getElementById('pagination').innerHTML = html + '</div>';
+    } else {
+        document.getElementById('pagination').innerHTML = '';
     }
-    document.getElementById('pagination').innerHTML = html + '</div>';
 }
 
 function openAddLecturer() {

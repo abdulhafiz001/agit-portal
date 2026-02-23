@@ -68,7 +68,7 @@
                 <input type="number" id="f-capacity" min="1" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Max students">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Subjects Offered</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Courses Offered</label>
                 <div id="subjects-checkboxes" class="max-h-40 overflow-y-auto border border-gray-200 rounded-lg p-3 space-y-2">
                     <div class="text-xs text-gray-400">Loading subjects...</div>
                 </div>
@@ -77,6 +77,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select id="f-status" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                     <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
                     <option value="completed">Completed</option>
                     <option value="archived">Archived</option>
                 </select>

@@ -38,6 +38,11 @@
                     <span class="sidebar-text ml-3">My Classes</span>
                 </a>
 
+                <a href="<?= APP_URL ?>/faculty/courses" class="sidebar-link <?= $currentPage === 'courses' ? 'active' : '' ?>">
+                    <i class="fas fa-book w-5 text-center"></i>
+                    <span class="sidebar-text ml-3">My Courses</span>
+                </a>
+
                 <div class="pt-4 pb-1">
                     <span class="sidebar-text text-xs font-semibold text-slate-500 uppercase tracking-wider px-3">Assessment</span>
                 </div>
@@ -131,6 +136,7 @@
         </div>
     </div>
 
+    <script>window.APP_URL = <?= json_encode(APP_URL) ?>;</script>
     <script src="<?= APP_URL ?>/assets/js/app.js"></script>
     <script>
         function toggleSidebar() {

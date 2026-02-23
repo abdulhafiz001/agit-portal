@@ -40,8 +40,9 @@
                 <div class="hidden md:flex items-center gap-8">
                     <a href="#features" class="text-gray-600 hover:text-primary-600 text-sm font-medium">Features</a>
                     <a href="#about" class="text-gray-600 hover:text-primary-600 text-sm font-medium">About</a>
+                    <a href="#courses" class="text-gray-600 hover:text-primary-600 text-sm font-medium">Courses</a>
                     <a href="#portals" class="text-gray-600 hover:text-primary-600 text-sm font-medium">Portals</a>
-                    <a href="#contact" class="text-gray-600 hover:text-primary-600 text-sm font-medium">Contact</a>
+                    <a href="#contact-form" class="text-gray-600 hover:text-primary-600 text-sm font-medium">Contact</a>
                 </div>
                 
                 <div class="hidden md:flex items-center gap-3">
@@ -61,8 +62,9 @@
             <div class="px-4 py-4 space-y-3">
                 <a href="#features" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Features</a>
                 <a href="#about" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">About</a>
+                <a href="#courses" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Courses</a>
                 <a href="#portals" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Portals</a>
-                <a href="#contact" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Contact</a>
+                <a href="#contact-form" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Contact</a>
                 <hr>
                 <a href="<?= APP_URL ?>/login/student" class="block px-4 py-2 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg text-center">Student Login</a>
                 <a href="<?= APP_URL ?>/login/faculty" class="block px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg text-center">Faculty Login</a>
@@ -287,6 +289,89 @@
         </div>
     </section>
 
+    <!-- Courses Section (CMS controlled - server-side rendered) -->
+    <section id="courses" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-primary-600 font-semibold text-sm uppercase tracking-wider">Our Courses</span>
+                <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mt-3">Explore Our Programs</h2>
+                <p class="text-gray-500 mt-4 max-w-2xl mx-auto">Discover the courses we offer. Contact us for enrollment enquiries.</p>
+            </div>
+            <div id="landing-courses" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <?php
+                $landingCourses = [];
+                try {
+                    $db = getDB();
+                    $c = $db->query("SHOW COLUMNS FROM subjects LIKE 'display_on_landing'");
+                    $hasDisplay = $c && $c->fetch();
+                    $c = $db->query("SHOW COLUMNS FROM subjects LIKE 'image'");
+                    $hasImage = $c && $c->fetch();
+                    $c = $db->query("SHOW COLUMNS FROM subjects LIKE 'duration'");
+                    $hasDuration = $c && $c->fetch();
+                    $sel = 'id, name, code, description';
+                    if ($hasImage) $sel .= ', image';
+                    if ($hasDuration) $sel .= ', duration';
+                    $where = "status = 'active'";
+                    if ($hasDisplay) $where .= " AND (display_on_landing = 1 OR display_on_landing IS NULL)";
+                    $stmt = $db->query("SELECT {$sel} FROM subjects WHERE {$where} ORDER BY name");
+                    $landingCourses = ($stmt !== false) ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+                } catch (Throwable $e) { $landingCourses = []; }
+                if (empty($landingCourses)): ?>
+                <div class="col-span-full text-center py-12 text-gray-400">No courses to display. Admin can configure in Settings &gt; Landing Page CMS.</div>
+                <?php else:
+                foreach ($landingCourses as $c):
+                    $img = !empty($c['image']) ? '<img src="' . htmlspecialchars(APP_URL . '/uploads/' . $c['image']) . '" alt="' . htmlspecialchars($c['name'] ?? '') . '" class="w-full h-40 object-cover rounded-t-xl">' : '';
+                    $dur = !empty($c['duration']) ? '<p class="text-xs text-blue-600 mt-2"><i class="fas fa-clock mr-1"></i>' . htmlspecialchars($c['duration']) . '</p>' : '';
+                    $desc = !empty($c['description']) ? '<p class="text-sm text-gray-600 mt-2 line-clamp-2">' . htmlspecialchars($c['description']) . '</p>' : '';
+                ?>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition">
+                    <?= $img ?>
+                    <div class="p-5">
+                        <h3 class="font-semibold text-gray-900 text-lg"><?= htmlspecialchars($c['name'] ?? '') ?></h3>
+                        <p class="text-sm text-gray-500 font-mono mt-1"><?= htmlspecialchars($c['code'] ?? '') ?></p>
+                        <?= $dur ?>
+                        <?= $desc ?>
+                    </div>
+                </div>
+                <?php endforeach; endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section id="contact-form" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-2xl mx-auto">
+                <div class="text-center mb-12">
+                    <span class="text-primary-600 font-semibold text-sm uppercase tracking-wider">Get in Touch</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900 mt-3">Contact Us</h2>
+                    <p class="text-gray-500 mt-4">Have a question? Fill out the form below and we'll get back to you.</p>
+                </div>
+                <form id="contact-form-el" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Your Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" placeholder="John Doe">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Address <span class="text-red-500">*</span></label>
+                        <input type="email" name="email" required class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Subject</label>
+                        <input type="text" name="subject" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm" placeholder="Enquiry about...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Message <span class="text-red-500">*</span></label>
+                        <textarea name="message" required rows="5" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm resize-none" placeholder="Your message..."></textarea>
+                    </div>
+                    <button type="submit" id="contact-submit-btn" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-500/30 transition text-sm">
+                        Send Message
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
     <!-- Portal Access Section -->
     <section id="portals" class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -370,7 +455,48 @@
         </div>
     </section>
 
+    <script>window.APP_URL = <?= json_encode(APP_URL) ?>;</script>
+    <script src="<?= APP_URL ?>/assets/js/app.js"></script>
     <script>
+        const APP_URL = window.APP_URL || <?= json_encode(APP_URL) ?>;
+
+        // Contact form submit
+        document.getElementById('contact-form-el').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('contact-submit-btn');
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            const form = e.target;
+            const body = {
+                name: form.name.value,
+                email: form.email.value,
+                subject: form.subject.value || 'AGIT Solutions Enquiry',
+                message: form.message.value
+            };
+            try {
+                const res = await fetch(APP_URL + '/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (typeof Toast !== 'undefined') Toast.success(data.message);
+                    else alert(data.message);
+                    form.reset();
+                } else {
+                    if (typeof Toast !== 'undefined') Toast.error(data.message);
+                    else alert(data.message || 'Failed to send.');
+                }
+            } catch (err) {
+                if (typeof Toast !== 'undefined') Toast.error('Network error. Please try again.');
+                else alert('Network error. Please try again.');
+            }
+            btn.disabled = false;
+            btn.textContent = origText;
+        });
+
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {

@@ -32,14 +32,39 @@ function updateProfile() {
     $data = getPostData();
     $table = $role === 'admin' ? 'admins' : ($role === 'lecturer' ? 'lecturers' : 'students');
 
-    // Basic updates: name, phone
     $name = sanitize($data['name'] ?? '');
     $phone = sanitize($data['phone'] ?? '');
+    $email = strtolower(trim($data['email'] ?? ''));
     if (!$name) jsonResponse(['success' => false, 'message' => 'Name is required.'], 400);
+    if (!$email || !isValidEmail($email)) jsonResponse(['success' => false, 'message' => 'Valid email is required.'], 400);
 
-    $stmt = $db->prepare("UPDATE {$table} SET name = ?, phone = ? WHERE id = ?");
-    $stmt->execute([$name, $phone, $userId]);
+    // Admins table has no phone column - only lecturers and students
+    $hasPhone = in_array($table, ['lecturers', 'students']);
+
+    if ($email && isValidEmail($email)) {
+        $check = $db->prepare("SELECT id FROM {$table} WHERE email = ? AND id != ?");
+        $check->execute([$email, $userId]);
+        if ($check->fetch()) {
+            jsonResponse(['success' => false, 'message' => 'Email already in use by another account.'], 400);
+        }
+        if ($hasPhone) {
+            $stmt = $db->prepare("UPDATE {$table} SET name = ?, email = ?, phone = ? WHERE id = ?");
+            $stmt->execute([$name, $email, $phone, $userId]);
+        } else {
+            $stmt = $db->prepare("UPDATE {$table} SET name = ?, email = ? WHERE id = ?");
+            $stmt->execute([$name, $email, $userId]);
+        }
+    } else {
+        if ($hasPhone) {
+            $stmt = $db->prepare("UPDATE {$table} SET name = ?, phone = ? WHERE id = ?");
+            $stmt->execute([$name, $phone, $userId]);
+        } else {
+            $stmt = $db->prepare("UPDATE {$table} SET name = ? WHERE id = ?");
+            $stmt->execute([$name, $userId]);
+        }
+    }
     $_SESSION['user_name'] = $name;
+    if (!empty($email)) $_SESSION['user_email'] = $email;
 
     jsonResponse(['success' => true, 'message' => 'Profile updated successfully.']);
 }

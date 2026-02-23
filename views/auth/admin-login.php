@@ -64,7 +64,13 @@
                     <p class="text-gray-500 mt-2">Sign in to your admin account to continue.</p>
                 </div>
 
-                <form id="login-form" class="space-y-5">
+                <?php if (!empty($loginError)): ?>
+                <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <?= htmlspecialchars($loginError) ?>
+                </div>
+                <?php endif; ?>
+                <form id="login-form" method="post" action="<?= APP_URL ?>/login/admin" class="space-y-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
                         <div class="relative">
@@ -108,6 +114,7 @@
         </div>
     </div>
 
+    <script>window.APP_URL = <?= json_encode(APP_URL) ?>;</script>
     <script src="<?= APP_URL ?>/assets/js/app.js"></script>
     <script>
         function togglePassword() {

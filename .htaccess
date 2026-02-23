@@ -1,6 +1,7 @@
 RewriteEngine On
 RewriteBase /agit-portal/
-SetEnv APP_URL https://portal.agitsolutionsng.com/agit-portal
+SetEnv APP_URL http://localhost/agit-portal
+
 
 # Don't rewrite existing files/directories
 RewriteCond %{REQUEST_FILENAME} !-f

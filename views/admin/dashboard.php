@@ -1,7 +1,7 @@
 <!-- Admin Dashboard -->
 <div id="dashboard-content">
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div class="flex items-center justify-between">
                 <div>
@@ -31,7 +31,7 @@
         <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Subjects</p>
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Courses</p>
                     <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-subjects">--</p>
                     <p class="text-xs text-gray-400 mt-1">Active courses</p>
                 </div>
@@ -52,6 +52,24 @@
                     <i class="fas fa-school text-purple-600 text-xl"></i>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="stat-card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Concluded Classes</p>
+            <p class="text-xl font-bold text-gray-900 mt-1" id="stat-concluded-classes">--</p>
+        </div>
+        <div class="stat-card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Suspended Classes</p>
+            <p class="text-xl font-bold text-amber-600 mt-1" id="stat-suspended-classes">--</p>
+        </div>
+        <div class="stat-card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Graduated Students</p>
+            <p class="text-xl font-bold text-emerald-600 mt-1" id="stat-graduated">--</p>
+        </div>
+        <div class="stat-card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Restricted Students</p>
+            <p class="text-xl font-bold text-red-600 mt-1" id="stat-restricted">--</p>
         </div>
     </div>
 
@@ -118,8 +136,8 @@
                         <i class="fas fa-book-medical text-amber-600 text-sm"></i>
                     </div>
                     <div>
-                        <div class="text-sm font-medium text-gray-900">Add Subject</div>
-                        <div class="text-xs text-gray-400">Create new subject</div>
+                        <div class="text-sm font-medium text-gray-900">Add Course</div>
+                        <div class="text-xs text-gray-400">Create new course</div>
                     </div>
                 </a>
             </div>
@@ -150,6 +168,10 @@ async function loadDashboard() {
     document.getElementById('stat-subjects').textContent = stats.total_subjects;
     document.getElementById('stat-classes').textContent = stats.total_classes;
     document.getElementById('stat-active-students').textContent = stats.active_students;
+    document.getElementById('stat-concluded-classes').textContent = stats.concluded_classes ?? 0;
+    document.getElementById('stat-suspended-classes').textContent = stats.suspended_classes ?? 0;
+    document.getElementById('stat-graduated').textContent = stats.graduated_students ?? 0;
+    document.getElementById('stat-restricted').textContent = stats.restricted_students ?? 0;
     
     // Enrollment Chart
     const enrollLabels = enrollment.map(e => {

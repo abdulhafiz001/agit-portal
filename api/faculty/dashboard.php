@@ -37,6 +37,20 @@ function getFacultyDashboardStats() {
     $assignments->execute([$lecturerId]);
     $assignmentCount = $assignments->fetch()['count'];
     
+    // Exams created and marked
+    $examsCreated = $db->prepare("SELECT COUNT(*) FROM exams WHERE lecturer_id = ?");
+    $examsCreated->execute([$lecturerId]);
+    $examsCreatedCount = $examsCreated->fetchColumn();
+    
+    $examsMarked = $db->prepare("SELECT COUNT(*) FROM exam_answers ea JOIN exam_attempts et ON et.id = ea.attempt_id JOIN exams e ON e.id = et.exam_id WHERE e.lecturer_id = ? AND ea.marks_awarded IS NOT NULL");
+    $examsMarked->execute([$lecturerId]);
+    $examsMarkedCount = $examsMarked->fetchColumn();
+    
+    // Assignments viewed (submissions)
+    $assignmentsViewed = $db->prepare("SELECT COUNT(*) FROM assignment_submissions aps JOIN assignments a ON a.id = aps.assignment_id WHERE a.lecturer_id = ?");
+    $assignmentsViewed->execute([$lecturerId]);
+    $assignmentsViewedCount = $assignmentsViewed->fetchColumn();
+    
     $todayDay = strtolower(date('l'));
     $todaySchedule = $db->prepare("SELECT COUNT(*) as count FROM class_schedules WHERE lecturer_id = ? AND day_of_week = ? AND status = 'active'");
     $todaySchedule->execute([$lecturerId, $todayDay]);
@@ -92,6 +106,10 @@ function getFacultyDashboardStats() {
                 'assignment_count' => (int)$assignmentCount,
                 'today_classes' => (int)$todayClasses,
                 'material_count' => (int)$materialCount,
+                'active_classes_count' => (int)$totalClasses,
+                'exams_created' => (int)$examsCreatedCount,
+                'exams_marked' => (int)$examsMarkedCount,
+                'assignments_viewed' => (int)$assignmentsViewedCount,
             ],
             'classes' => $myClasses,
             'subjects' => $mySubjects,

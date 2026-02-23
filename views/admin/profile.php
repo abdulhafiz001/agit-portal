@@ -23,8 +23,8 @@
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b"><h3 class="font-semibold text-gray-900 flex items-center gap-2"><i class="fas fa-user text-blue-600"></i> Account Information</h3></div>
             <form id="profile-form" class="p-6 space-y-4">
                 <div><label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Full Name</label><input type="text" id="p-name" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm"></div>
-                <div><label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Email</label><input type="email" id="p-email" disabled class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 text-gray-500"></div>
-                <div><label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Phone</label><input type="text" id="p-phone" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm"></div>
+                <div><label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Email</label><input type="email" id="p-email" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"></div>
+                <div id="p-phone-wrap" class="hidden"><label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Phone</label><input type="text" id="p-phone" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm"></div>
                 <button type="submit" id="save-profile-btn" class="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-sm font-medium"><i class="fas fa-save mr-2"></i>Save Changes</button>
             </form>
         </div>
@@ -55,7 +55,14 @@ async function loadProfile() {
     }
     document.getElementById('p-name').value = d.name || '';
     document.getElementById('p-email').value = d.email || '';
-    document.getElementById('p-phone').value = d.phone || '';
+    const phoneWrap = document.getElementById('p-phone-wrap');
+    const phoneInput = document.getElementById('p-phone');
+    if (phoneWrap && phoneInput) {
+        if (d.phone !== undefined && d.phone !== null) {
+            phoneWrap.classList.remove('hidden');
+            phoneInput.value = d.phone || '';
+        }
+    }
 }
 async function uploadPicture(input) {
     if (!input.files[0]) return;
@@ -73,9 +80,15 @@ async function uploadPicture(input) {
 document.getElementById('profile-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('save-profile-btn'); setLoading(btn, true);
-    const data = await API.put('/api/profile', { name: document.getElementById('p-name').value, phone: document.getElementById('p-phone').value });
+    const payload = { name: document.getElementById('p-name').value, email: document.getElementById('p-email').value };
+    const phoneEl = document.getElementById('p-phone');
+    if (phoneEl && document.getElementById('p-phone-wrap') && !document.getElementById('p-phone-wrap').classList.contains('hidden')) {
+        payload.phone = phoneEl.value;
+    }
+    const data = await API.put('/api/profile', payload);
     setLoading(btn, false);
-    if (data && data.success) Toast.success(data.message); else if (data) Toast.error(data.message);
+    if (data && data.success) { Toast.success(data.message); document.getElementById('hero-email').textContent = document.getElementById('p-email').value; }
+    else if (data) Toast.error(data.message);
 });
 document.getElementById('password-form').addEventListener('submit', async (e) => {
     e.preventDefault();

@@ -19,6 +19,12 @@
         <button onclick="switchTab('admins')" id="tab-admins" class="settings-tab flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 whitespace-nowrap">
             <i class="fas fa-users-cog"></i> Admins
         </button>
+        <button onclick="switchTab('cms')" id="tab-cms" class="settings-tab flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 whitespace-nowrap">
+            <i class="fas fa-globe"></i> Landing Page CMS
+        </button>
+        <button onclick="switchTab('email')" id="tab-email" class="settings-tab flex items-center gap-2 px-5 py-3.5 text-sm font-medium border-b-2 whitespace-nowrap">
+            <i class="fas fa-envelope"></i> Email / SMTP
+        </button>
     </div>
     <!-- Mobile tab dropdown -->
     <div class="sm:hidden p-3">
@@ -28,6 +34,8 @@
             <option value="promotions">Promotions</option>
             <option value="logs">Activity Logs</option>
             <option value="admins">Manage Admins</option>
+            <option value="cms">Landing Page CMS</option>
+            <option value="email">Email / SMTP</option>
         </select>
     </div>
 </div>
@@ -383,6 +391,54 @@
     </div>
 </div>
 
+<!-- ==================== LANDING PAGE CMS TAB ==================== -->
+<div id="panel-cms" class="tab-panel hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2"><i class="fas fa-book text-blue-500"></i> Courses on Landing Page</h3>
+        <p class="text-sm text-gray-500 mb-4">Select which courses to display on the public landing page. Toggle ON to show, OFF to hide.</p>
+        <div id="cms-courses-list" class="space-y-3">
+            <div class="text-center py-8 text-gray-400"><div class="spinner mx-auto mb-3"></div>Loading courses...</div>
+        </div>
+        <div class="mt-4 flex justify-end">
+            <button onclick="saveCmsCourses()" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"><i class="fas fa-save mr-2"></i>Save Display Settings</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== EMAIL / SMTP TAB ==================== -->
+<div id="panel-email" class="tab-panel hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-2xl">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2"><i class="fas fa-envelope text-green-500"></i> SMTP Configuration</h3>
+        <p class="text-sm text-gray-500 mb-4">Configure SMTP for contact form and password reset emails. Port 465 uses SSL.</p>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
+                <input type="text" id="set-smtp_host" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" placeholder="smtp.gmail.com">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Username (Email)</label>
+                    <input type="text" id="set-smtp_username" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" placeholder="your@email.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
+                    <input type="password" id="set-smtp_password" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" placeholder="App password">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Port</label>
+                <input type="number" id="set-smtp_port" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" value="465" placeholder="465">
+            </div>
+            <div class="bg-amber-50 rounded-lg p-3 text-sm text-amber-800">
+                <strong>Note:</strong> For Gmail, use an App Password. Contact form sends to admin@agitsolutionsng.com. Run <code class="bg-amber-100 px-1 rounded">composer install</code> for PHPMailer.
+            </div>
+        </div>
+        <div class="mt-4 flex justify-end">
+            <button onclick="saveSmtpSettings()" class="px-6 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"><i class="fas fa-save mr-2"></i>Save SMTP Settings</button>
+        </div>
+    </div>
+</div>
+
 <!-- ==================== MANAGE ADMINS TAB ==================== -->
 <div id="panel-admins" class="tab-panel hidden">
     <div class="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -426,7 +482,7 @@
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="dashboard" class="adm-page rounded border-gray-300 text-purple-600" checked disabled> Dashboard</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="students" class="adm-page rounded border-gray-300 text-purple-600"> Students</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="lecturers" class="adm-page rounded border-gray-300 text-purple-600"> Lecturers</label>
-                    <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="subjects" class="adm-page rounded border-gray-300 text-purple-600"> Subjects</label>
+                    <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="subjects" class="adm-page rounded border-gray-300 text-purple-600"> Courses</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="classes" class="adm-page rounded border-gray-300 text-purple-600"> Classes</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="schedules" class="adm-page rounded border-gray-300 text-purple-600"> Schedules</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="exams" class="adm-page rounded border-gray-300 text-purple-600"> Exams</label>
@@ -474,6 +530,8 @@ function switchTab(tab) {
     if (tab === 'promotions') loadPromotionData();
     if (tab === 'logs') loadActivityLogs();
     if (tab === 'admins') loadAdmins();
+    if (tab === 'cms') loadCmsCourses();
+    if (tab === 'email') loadSmtpSettings();
 }
 
 // ==================== GENERAL SETTINGS ====================
@@ -819,6 +877,59 @@ async function deleteAdminUser(id) {
     if (!await confirmAction('Delete this admin?')) return;
     const data = await API.delete(`/api/admin/manage-admins/${id}`);
     if (data && data.success) { Toast.success(data.message); loadAdmins(); }
+}
+
+// ==================== CMS COURSES ====================
+async function loadCmsCourses() {
+    const data = await API.get('/api/admin/settings/cms');
+    const container = document.getElementById('cms-courses-list');
+    if (!data || !data.success || !data.data.length) {
+        container.innerHTML = '<div class="text-center py-8 text-gray-400">No courses found. Add courses first in the Courses page.</div>';
+        return;
+    }
+    container.innerHTML = data.data.map(c => `
+        <label class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition cursor-pointer">
+            <span class="font-medium text-gray-800">${escapeHtml(c.name)} <span class="text-gray-400 font-normal">(${escapeHtml(c.code)})</span></span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" data-id="${c.id}" class="cms-display sr-only peer" ${c.display_on_landing == 1 ? 'checked' : ''}>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+        </label>
+    `).join('');
+}
+
+async function saveCmsCourses() {
+    const courses = [...document.querySelectorAll('.cms-display')].map(cb => ({
+        id: parseInt(cb.dataset.id),
+        display: cb.checked
+    }));
+    const data = await API.post('/api/admin/settings/cms', { courses });
+    if (data && data.success) Toast.success(data.message);
+    else if (data) Toast.error(data.message);
+}
+
+// ==================== SMTP SETTINGS ====================
+async function loadSmtpSettings() {
+    const data = await API.get('/api/admin/settings');
+    if (!data || !data.success) return;
+    const all = {};
+    (data.raw || []).forEach(s => { all[s.setting_key] = s.setting_value; });
+    ['smtp_host','smtp_username','smtp_password','smtp_port'].forEach(key => {
+        const el = document.getElementById('set-' + key);
+        if (el) el.value = all[key] || (key === 'smtp_port' ? '465' : '');
+    });
+}
+
+async function saveSmtpSettings() {
+    const settings = [
+        { key: 'smtp_host', value: document.getElementById('set-smtp_host').value, category: 'email' },
+        { key: 'smtp_username', value: document.getElementById('set-smtp_username').value, category: 'email' },
+        { key: 'smtp_password', value: document.getElementById('set-smtp_password').value, category: 'email' },
+        { key: 'smtp_port', value: document.getElementById('set-smtp_port').value || '465', category: 'email' }
+    ];
+    const data = await API.post('/api/admin/settings', { settings });
+    if (data && data.success) { Toast.success(data.message); document.getElementById('set-smtp_password').value = ''; }
+    else if (data) Toast.error(data.message);
 }
 
 // ==================== INIT ====================

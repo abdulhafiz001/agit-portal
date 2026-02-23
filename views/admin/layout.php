@@ -73,7 +73,7 @@ if (!$isFullAccess && $currentPage !== 'dashboard' && $currentPage !== 'profile'
                 <?php if (canSee('subjects', $allowedPages, $isFullAccess)): ?>
                 <a href="<?= APP_URL ?>/admin/subjects" class="sidebar-link <?= $currentPage === 'subjects' ? 'active' : '' ?>">
                     <i class="fas fa-book w-5 text-center"></i>
-                    <span class="sidebar-text ml-3">Subjects</span>
+                    <span class="sidebar-text ml-3">Courses</span>
                 </a>
                 <?php endif; ?>
 
@@ -206,6 +206,7 @@ if (!$isFullAccess && $currentPage !== 'dashboard' && $currentPage !== 'profile'
         </div>
     </div>
 
+    <script>window.APP_URL = <?= json_encode(APP_URL) ?>;</script>
     <script src="<?= APP_URL ?>/assets/js/app.js"></script>
     <script>
         function toggleSidebar() {

@@ -14,6 +14,16 @@ function getDashboardStats() {
     $activeStudents = $db->query("SELECT COUNT(*) as count FROM students WHERE status='active'")->fetch()['count'];
     $exams = $db->query("SELECT COUNT(*) as count FROM exams")->fetch()['count'];
     
+    // Additional stats: concluded classes, suspended classes, graduated, restricted
+    $concludedClasses = 0;
+    $suspendedClasses = 0;
+    try {
+        $concludedClasses = $db->query("SELECT COUNT(*) FROM classes WHERE status IN ('completed','archived')")->fetchColumn();
+        $suspendedClasses = $db->query("SELECT COUNT(*) FROM classes WHERE status = 'suspended'")->fetchColumn();
+    } catch (Exception $e) {}
+    $graduatedStudents = $db->query("SELECT COUNT(*) as count FROM students WHERE status='graduated'")->fetch()['count'];
+    $restrictedStudents = $db->query("SELECT COUNT(*) as count FROM students WHERE status='restricted'")->fetch()['count'];
+    
     // Monthly enrollment (last 6 months)
     $enrollment = $db->query("
         SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as count 
@@ -56,6 +66,10 @@ function getDashboardStats() {
                 'total_classes' => (int)$classes,
                 'active_students' => (int)$activeStudents,
                 'total_exams' => (int)$exams,
+                'concluded_classes' => (int)$concludedClasses,
+                'suspended_classes' => (int)$suspendedClasses,
+                'graduated_students' => (int)$graduatedStudents,
+                'restricted_students' => (int)$restrictedStudents,
             ],
             'enrollment' => $enrollment,
             'class_distribution' => $classDistribution,

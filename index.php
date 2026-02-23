@@ -48,6 +48,28 @@ if (strpos($route, '/api/') === 0) {
         handleRegister();
         exit;
     }
+    if ($route === '/api/auth/forgot-password' && $method === 'POST') {
+        require __DIR__ . '/api/auth.php';
+        handleForgotPassword();
+        exit;
+    }
+    if ($route === '/api/auth/reset-password' && $method === 'POST') {
+        require __DIR__ . '/api/auth.php';
+        handleResetPassword();
+        exit;
+    }
+
+    // Public APIs (no auth)
+    if ($route === '/api/contact' && $method === 'POST') {
+        require __DIR__ . '/api/contact.php';
+        submitContact();
+        exit;
+    }
+    if ($route === '/api/landing/courses' && $method === 'GET') {
+        require __DIR__ . '/api/landing.php';
+        getLandingCourses();
+        exit;
+    }
 
     // Profile API (all authenticated users)
     if ($route === '/api/profile' && $method === 'GET') {
@@ -120,7 +142,7 @@ if (strpos($route, '/api/') === 0) {
             $id = $m[1] ?? null;
             switch ($method) {
                 case 'GET': $id ? getSubject($id) : getSubjects(); break;
-                case 'POST': createSubject(); break;
+                case 'POST': $id ? updateSubject($id) : createSubject(); break;
                 case 'PUT': updateSubject($id); break;
                 case 'DELETE': deleteSubject($id); break;
             }
@@ -234,6 +256,16 @@ if (strpos($route, '/api/') === 0) {
             updateSettings();
             exit;
         }
+        if ($route === '/api/admin/settings/cms' && $method === 'GET') {
+            require __DIR__ . '/api/admin/settings.php';
+            getCmsCourses();
+            exit;
+        }
+        if ($route === '/api/admin/settings/cms' && $method === 'POST') {
+            require __DIR__ . '/api/admin/settings.php';
+            updateCmsCourses();
+            exit;
+        }
 
         // Grading Configurations
         if ($route === '/api/admin/grading' && $method === 'GET') {
@@ -324,6 +356,11 @@ if (strpos($route, '/api/') === 0) {
         if (preg_match('#^/api/faculty/classes/(\d+)/students$#', $route, $m)) {
             require __DIR__ . '/api/faculty/classes.php';
             getClassStudents($m[1]);
+            exit;
+        }
+        if ($route === '/api/faculty/courses' && $method === 'GET') {
+            require __DIR__ . '/api/faculty/courses.php';
+            getMyCourses();
             exit;
         }
 
@@ -554,11 +591,20 @@ if ($route === '/') {
     exit;
 }
 
-// Login pages
+// Login pages (handle both GET and POST for server-side fallback)
 if ($route === '/login/admin') {
     if (isLoggedIn() && $_SESSION['user_role'] === 'admin') {
         header('Location: ' . APP_URL . '/admin/dashboard');
         exit;
+    }
+    $loginError = null;
+    if ($method === 'POST' && !empty($_POST['email']) && !empty($_POST['password'])) {
+        $result = loginUser(sanitize($_POST['email']), $_POST['password'], 'admin');
+        if ($result['success']) {
+            header('Location: ' . $result['redirect']);
+            exit;
+        }
+        $loginError = $result['message'];
     }
     require VIEWS_PATH . '/auth/admin-login.php';
     exit;
@@ -568,6 +614,15 @@ if ($route === '/login/faculty') {
         header('Location: ' . APP_URL . '/faculty/dashboard');
         exit;
     }
+    $loginError = null;
+    if ($method === 'POST' && !empty($_POST['email']) && !empty($_POST['password'])) {
+        $result = loginUser(sanitize($_POST['email']), $_POST['password'], 'lecturer');
+        if ($result['success']) {
+            header('Location: ' . $result['redirect']);
+            exit;
+        }
+        $loginError = $result['message'];
+    }
     require VIEWS_PATH . '/auth/faculty-login.php';
     exit;
 }
@@ -576,11 +631,62 @@ if ($route === '/login/student') {
         header('Location: ' . APP_URL . '/student/dashboard');
         exit;
     }
+    $loginError = null;
+    if ($method === 'POST' && !empty($_POST['email']) && !empty($_POST['password'])) {
+        $result = loginUser(sanitize($_POST['email']), $_POST['password'], 'student');
+        if ($result['success']) {
+            header('Location: ' . $result['redirect']);
+            exit;
+        }
+        $loginError = $result['message'];
+    }
     require VIEWS_PATH . '/auth/student-login.php';
     exit;
 }
 if ($route === '/register/student') {
     require VIEWS_PATH . '/auth/register.php';
+    exit;
+}
+
+// Forgot password pages (standard page flow)
+if ($route === '/forgot-password/faculty' || $route === '/forgot-password/student') {
+    $forgotRole = ($route === '/forgot-password/faculty') ? 'lecturer' : 'student';
+    $forgotStep = 1;
+    $forgotEmail = '';
+    $forgotError = '';
+    $forgotSuccess = '';
+
+    if ($method === 'POST') {
+        require_once __DIR__ . '/api/auth.php';
+        $step = (int) ($_POST['step'] ?? 1);
+        if ($step === 1) {
+            $email = trim($_POST['email'] ?? '');
+            $result = processForgotPasswordRequest($email, $forgotRole);
+            if ($result['success']) {
+                $forgotStep = 2;
+                $forgotEmail = $email;
+                $forgotSuccess = $result['message'];
+            } else {
+                $forgotError = $result['message'];
+                $forgotEmail = $email;
+            }
+        } else {
+            $email = trim($_POST['email'] ?? '');
+            $code = trim($_POST['code'] ?? '');
+            $newPassword = $_POST['new_password'] ?? '';
+            $confirmPassword = $_POST['confirm_password'] ?? '';
+            $result = processResetPassword($email, $code, $newPassword, $confirmPassword, $forgotRole);
+            if ($result['success']) {
+                $loginUrl = $forgotRole === 'lecturer' ? (APP_URL . '/login/faculty') : (APP_URL . '/login/student');
+                header('Location: ' . $loginUrl . '?reset=success');
+                exit;
+            }
+            $forgotError = $result['message'];
+            $forgotStep = 2;
+            $forgotEmail = $email;
+        }
+    }
+    require VIEWS_PATH . '/auth/forgot-password.php';
     exit;
 }
 
@@ -625,6 +731,7 @@ if (strpos($route, '/faculty') === 0) {
     $facultyViews = [
         'dashboard' => 'dashboard',
         'classes' => 'classes',
+        'courses' => 'courses',
         'exams' => 'exams',
         'scores' => 'scores',
         'schedules' => 'schedules',
