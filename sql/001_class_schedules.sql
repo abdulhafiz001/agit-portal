@@ -1,7 +1,7 @@
 -- Migration: Add class_schedules table
 -- Run this if your database already exists and you need to add the schedules feature
 
-USE agit_aams;
+USE agitacad_portaldb;
 
 CREATE TABLE IF NOT EXISTS class_schedules (
     id INT AUTO_INCREMENT PRIMARY KEY,

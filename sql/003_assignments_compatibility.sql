@@ -1,7 +1,7 @@
 -- Migration: Make assignments schema compatible across old/new installs
 -- Safe for MySQL/MariaDB versions that do not support "ADD COLUMN IF NOT EXISTS"
 
-USE agit_aams;
+USE agitacad_portaldb;
 
 -- assignments.total_marks (fallback from older max_score schema)
 SET @col_exists := (

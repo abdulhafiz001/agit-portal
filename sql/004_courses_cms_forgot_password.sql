@@ -2,7 +2,7 @@
 -- Run this migration to add new features
 -- Skip any statement that errors (column/table may already exist)
 
-USE agit_aams;
+USE agitacad_portaldb;
 
 -- 1. Subjects/Courses: Add image, duration, display_on_landing
 ALTER TABLE subjects ADD COLUMN image VARCHAR(255) NULL AFTER description;

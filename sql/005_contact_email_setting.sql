@@ -1,7 +1,7 @@
 -- Migration 005: Add contact_email setting for contact form recipient
 -- Run this migration to make contact form recipient configurable from Settings > Email
 
-USE agit_aams;
+USE agitacad_portaldb;
 
 INSERT INTO settings (setting_key, setting_value, category) VALUES
 ('contact_email', 'admin@agitacademy.com', 'email')

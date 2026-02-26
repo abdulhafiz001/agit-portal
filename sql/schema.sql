@@ -2,8 +2,8 @@
 -- Version: 1.0
 -- Database: agit_aams
 
-CREATE DATABASE IF NOT EXISTS agit_aams CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE agit_aams;
+CREATE DATABASE IF NOT EXISTS agitacad_portaldb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE agitacad_portaldb;
 
 -- ============================================================
 -- CORE TABLES
