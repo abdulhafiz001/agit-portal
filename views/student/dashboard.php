@@ -27,7 +27,7 @@
         <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">My Subjects</p>
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">My Courses</p>
                     <p class="text-2xl font-bold text-gray-900 mt-1" id="stat-subjects">--</p>
                 </div>
                 <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
@@ -76,7 +76,7 @@
     <div class="grid lg:grid-cols-2 gap-6">
         <!-- My Subjects -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h3 class="font-semibold text-gray-900 text-sm mb-4">My Subjects</h3>
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">My Co</h3>
             <div id="subjects-list" class="space-y-3">
                 <div class="text-center py-4 text-gray-400 text-sm">Loading...</div>
             </div>

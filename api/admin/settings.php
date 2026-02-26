@@ -27,10 +27,33 @@ function updateSettings() {
 
     $stmt = $db->prepare("INSERT INTO settings (setting_key, setting_value, category) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
     foreach ($settings as $item) {
-        $stmt->execute([$item['key'], $item['value'], $item['category'] ?? 'general']);
+        $key = $item['key'] ?? '';
+        $value = $item['value'] ?? '';
+        $category = $item['category'] ?? 'general';
+        if ($key === 'smtp_password' && $value === '') {
+            continue;
+        }
+        $stmt->execute([$key, $value, $category]);
     }
     logActivity('admin', $_SESSION['user_id'], 'update_settings', 'Updated portal settings');
     jsonResponse(['success' => true, 'message' => 'Settings saved successfully.']);
+}
+
+function testEmail() {
+    $data = getPostData();
+    $to = trim($data['email'] ?? '');
+    if (empty($to) || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        jsonResponse(['success' => false, 'message' => 'Valid email address required.'], 400);
+    }
+    require_once __DIR__ . '/../../helpers/mail.php';
+    require_once __DIR__ . '/../../helpers/email_templates.php';
+    $body = '<p>This is a test email from AGIT Academy. If you received this, your SMTP configuration is working correctly.</p>';
+    $result = sendSmtpEmail($to, 'AGIT Academy – Test Email', $body, 'AGIT Academy');
+    if ($result['success']) {
+        jsonResponse(['success' => true, 'message' => 'Test email sent to ' . $to]);
+    } else {
+        jsonResponse(['success' => false, 'message' => $result['message']], 500);
+    }
 }
 
 // Grading Configuration

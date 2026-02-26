@@ -13,8 +13,13 @@ function getStudents() {
     $where = [];
     $params = [];
     
+    $hasApproval = (bool) $db->query("SHOW COLUMNS FROM students LIKE 'approval_status'")->fetch();
+    if ($hasApproval) {
+        $where[] = "s.approval_status = 'approved'";
+    }
+    
     if ($search) {
-        $where[] = "(s.name LIKE ? OR s.email LIKE ? OR s.matric_no LIKE ?)";
+        $where[] = "(s.name LIKE ? OR s.email LIKE ? OR COALESCE(s.matric_no,'') LIKE ?)";
         $params[] = "%$search%";
         $params[] = "%$search%";
         $params[] = "%$search%";
@@ -79,10 +84,11 @@ function createStudent() {
     
     $password = hashPassword($data['password'] ?? 'password');
     
-    $stmt = $db->prepare("
-        INSERT INTO students (name, email, matric_no, class_id, password, phone, gender, date_of_birth, address, guardian_name, guardian_phone, status) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
-    ");
+    $hasApproval = (bool) $db->query("SHOW COLUMNS FROM students LIKE 'approval_status'")->fetch();
+    $cols = "name, email, matric_no, class_id, password, phone, gender, date_of_birth, address, guardian_name, guardian_phone, status";
+    $vals = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active'";
+    if ($hasApproval) { $cols .= ", approval_status"; $vals .= ", 'approved'"; }
+    $stmt = $db->prepare("INSERT INTO students ($cols) VALUES ($vals)");
     $stmt->execute([
         sanitize($data['name']),
         sanitize($data['email']),

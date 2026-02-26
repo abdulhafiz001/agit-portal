@@ -56,7 +56,14 @@ if (!$isFullAccess && $currentPage !== 'dashboard' && $currentPage !== 'profile'
                     <span class="sidebar-text text-xs font-semibold text-slate-500 uppercase tracking-wider px-3">Academic</span>
                 </div>
 
-                <?php if (canSee('students', $allowedPages, $isFullAccess)): ?>
+                <?php if (canSee('students', $allowedPages, $isFullAccess) || canSee('registrations', $allowedPages, $isFullAccess)): ?>
+                <a href="<?= APP_URL ?>/admin/registrations" class="sidebar-link <?= $currentPage === 'registrations' ? 'active' : '' ?> relative">
+                    <i class="fas fa-user-plus w-5 text-center"></i>
+                    <span class="sidebar-text ml-3">New Registrations</span>
+                    <?php if (($pendingRegistrationsBadge ?? 0) > 0): ?>
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 min-w-[20px] h-5 px-1.5 flex items-center justify-center bg-red-500 text-white text-xs font-bold rounded-full"><?= (int) $pendingRegistrationsBadge ?></span>
+                    <?php endif; ?>
+                </a>
                 <a href="<?= APP_URL ?>/admin/students" class="sidebar-link <?= $currentPage === 'students' ? 'active' : '' ?>">
                     <i class="fas fa-user-graduate w-5 text-center"></i>
                     <span class="sidebar-text ml-3">Students</span>

@@ -35,6 +35,17 @@ function loginUser($email, $password, $role) {
         return ['success' => false, 'message' => 'Invalid email or password.'];
     }
 
+    // Students: check approval_status - only approved can login
+    if ($role === 'student') {
+        $approvalStatus = $user['approval_status'] ?? 'approved'; // legacy: no column = approved
+        if ($approvalStatus === 'pending') {
+            return ['success' => false, 'message' => 'Your registration is pending approval. You will receive an email once approved.'];
+        }
+        if ($approvalStatus === 'rejected') {
+            return ['success' => false, 'message' => 'Your application was not approved. Please contact admin for details.'];
+        }
+    }
+
     if ($user['status'] !== 'active' && $role !== 'student') {
         return ['success' => false, 'message' => 'Your account has been restricted. Contact admin.'];
     }

@@ -412,6 +412,11 @@
         <p class="text-sm text-gray-500 mb-4">Configure SMTP for contact form and password reset emails. Port 465 uses SSL.</p>
         <div class="space-y-4">
             <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Contact Form Recipient Email</label>
+                <input type="email" id="set-contact_email" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" placeholder="admin@agitacademy.com">
+                <p class="text-xs text-gray-500 mt-1">New student registrations, contact form, and other notifications are sent to this address.</p>
+            </div>
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Host</label>
                 <input type="text" id="set-smtp_host" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" placeholder="smtp.gmail.com">
             </div>
@@ -422,15 +427,36 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Password</label>
-                    <input type="password" id="set-smtp_password" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" placeholder="App password">
+                    <div class="relative">
+                        <input type="password" id="set-smtp_password" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm pr-10" placeholder="App password">
+                        <span id="smtp-password-set" class="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 hidden" title="Password is configured"><i class="fas fa-check-circle"></i></span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Leave blank to keep current. Set to show configured.</p>
                 </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Port</label>
-                <input type="number" id="set-smtp_port" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" value="465" placeholder="465">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">SMTP Port</label>
+                    <input type="number" id="set-smtp_port" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" value="465" placeholder="465">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Encryption</label>
+                    <select id="set-smtp_encryption" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm">
+                        <option value="ssl">SSL (port 465)</option>
+                        <option value="tls">TLS (port 587)</option>
+                    </select>
+                </div>
             </div>
             <div class="bg-amber-50 rounded-lg p-3 text-sm text-amber-800">
-                <strong>Note:</strong> For Gmail, use an App Password. Contact form sends to admin@agitsolutionsng.com. Run <code class="bg-amber-100 px-1 rounded">composer install</code> for PHPMailer.
+                <strong>Gmail:</strong> Use an <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener" class="underline">App Password</a> (not your regular password). Enable 2-Step Verification first. Port 465 = SSL, Port 587 = TLS.
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end pt-2">
+                <div class="flex-1 min-w-0">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Test Email</label>
+                    <input type="email" id="test-email-to" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm" placeholder="your@email.com">
+                    <p class="text-xs text-gray-500 mt-1">Send a test email to verify SMTP is working.</p>
+                </div>
+                <button onclick="sendTestEmail()" class="px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 whitespace-nowrap"><i class="fas fa-paper-plane mr-2"></i>Send Test Email</button>
             </div>
         </div>
         <div class="mt-4 flex justify-end">
@@ -480,6 +506,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Accessible Pages <span class="text-gray-400 text-xs">(for limited access)</span></label>
                 <div id="pages-grid" class="grid grid-cols-2 gap-2">
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="dashboard" class="adm-page rounded border-gray-300 text-purple-600" checked disabled> Dashboard</label>
+                    <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="registrations" class="adm-page rounded border-gray-300 text-purple-600"> New Registrations</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="students" class="adm-page rounded border-gray-300 text-purple-600"> Students</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="lecturers" class="adm-page rounded border-gray-300 text-purple-600"> Lecturers</label>
                     <label class="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded-lg"><input type="checkbox" value="subjects" class="adm-page rounded border-gray-300 text-purple-600"> Courses</label>
@@ -914,22 +941,46 @@ async function loadSmtpSettings() {
     if (!data || !data.success) return;
     const all = {};
     (data.raw || []).forEach(s => { all[s.setting_key] = s.setting_value; });
-    ['smtp_host','smtp_username','smtp_password','smtp_port'].forEach(key => {
+    ['contact_email','smtp_host','smtp_username','smtp_password','smtp_port','smtp_encryption'].forEach(key => {
         const el = document.getElementById('set-' + key);
-        if (el) el.value = all[key] || (key === 'smtp_port' ? '465' : '');
+        if (el) {
+            el.value = all[key] || (key === 'smtp_port' ? '465' : key === 'contact_email' ? 'admin@agitacademy.com' : key === 'smtp_encryption' ? 'ssl' : '');
+            if (key === 'smtp_password') {
+                const setEl = document.getElementById('smtp-password-set');
+                if (setEl) setEl.classList.toggle('hidden', !all[key] || all[key].length === 0);
+            }
+        }
     });
+    const testEl = document.getElementById('test-email-to');
+    if (testEl && !testEl.value) testEl.placeholder = all.contact_email || 'your@email.com';
 }
 
 async function saveSmtpSettings() {
     const settings = [
+        { key: 'contact_email', value: document.getElementById('set-contact_email').value || 'admin@agitacademy.com', category: 'email' },
         { key: 'smtp_host', value: document.getElementById('set-smtp_host').value, category: 'email' },
         { key: 'smtp_username', value: document.getElementById('set-smtp_username').value, category: 'email' },
         { key: 'smtp_password', value: document.getElementById('set-smtp_password').value, category: 'email' },
-        { key: 'smtp_port', value: document.getElementById('set-smtp_port').value || '465', category: 'email' }
+        { key: 'smtp_port', value: document.getElementById('set-smtp_port').value || '465', category: 'email' },
+        { key: 'smtp_encryption', value: document.getElementById('set-smtp_encryption').value || 'ssl', category: 'email' }
     ];
     const data = await API.post('/api/admin/settings', { settings });
-    if (data && data.success) { Toast.success(data.message); document.getElementById('set-smtp_password').value = ''; }
+    if (data && data.success) { Toast.success(data.message); document.getElementById('set-smtp_password').value = ''; loadSmtpSettings(); }
     else if (data) Toast.error(data.message);
+}
+
+async function sendTestEmail() {
+    const to = document.getElementById('test-email-to').value.trim();
+    if (!to) { Toast.error('Enter an email address to send the test to.'); return; }
+    const btn = document.querySelector('button[onclick="sendTestEmail()"]');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+    const data = await API.post('/api/admin/settings/test-email', { email: to });
+    btn.disabled = false;
+    btn.innerHTML = orig;
+    if (data && data.success) Toast.success(data.message);
+    else if (data) Toast.error(data.message || 'Failed to send test email.');
 }
 
 // ==================== INIT ====================

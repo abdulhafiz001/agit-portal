@@ -30,6 +30,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 // API ROUTES
 // ============================================================
 if (strpos($route, '/api/') === 0) {
+    ob_start();
     header('Content-Type: application/json');
 
     // Auth API
@@ -133,6 +134,28 @@ if (strpos($route, '/api/') === 0) {
         if ($route === '/api/admin/students/import' && $method === 'POST') {
             require __DIR__ . '/api/admin/students.php';
             importStudents();
+            exit;
+        }
+
+        // Student Registrations (pending approvals)
+        if ($route === '/api/admin/registrations/stats' && $method === 'GET') {
+            require __DIR__ . '/api/admin/registrations.php';
+            getRegistrationsStats();
+            exit;
+        }
+        if ($route === '/api/admin/registrations' && $method === 'GET') {
+            require __DIR__ . '/api/admin/registrations.php';
+            getPendingRegistrations();
+            exit;
+        }
+        if (preg_match('#^/api/admin/registrations/(\d+)/approve$#', $route, $m) && $method === 'POST') {
+            require __DIR__ . '/api/admin/registrations.php';
+            approveRegistration($m[1]);
+            exit;
+        }
+        if (preg_match('#^/api/admin/registrations/(\d+)/decline$#', $route, $m) && $method === 'POST') {
+            require __DIR__ . '/api/admin/registrations.php';
+            declineRegistration($m[1]);
             exit;
         }
 
@@ -254,6 +277,11 @@ if (strpos($route, '/api/') === 0) {
         if ($route === '/api/admin/settings' && $method === 'POST') {
             require __DIR__ . '/api/admin/settings.php';
             updateSettings();
+            exit;
+        }
+        if ($route === '/api/admin/settings/test-email' && $method === 'POST') {
+            require __DIR__ . '/api/admin/settings.php';
+            testEmail();
             exit;
         }
         if ($route === '/api/admin/settings/cms' && $method === 'GET') {
@@ -585,6 +613,17 @@ if (strpos($route, '/api/') === 0) {
 // VIEW ROUTES
 // ============================================================
 
+// Enroll redirect: register if enabled, login if disabled (for Academy "Enroll Now" / "Start Your Journey" links)
+if ($route === '/enroll') {
+    $regEnabled = getSetting('allow_registration', '0');
+    if ($regEnabled === '1') {
+        header('Location: ' . APP_URL . '/register/student');
+    } else {
+        header('Location: ' . APP_URL . '/login/student');
+    }
+    exit;
+}
+
 // Landing page
 if ($route === '/') {
     require VIEWS_PATH . '/landing.php';
@@ -647,6 +686,43 @@ if ($route === '/register/student') {
     require VIEWS_PATH . '/auth/register.php';
     exit;
 }
+if ($route === '/register/success') {
+    require VIEWS_PATH . '/auth/register-success.php';
+    exit;
+}
+
+// Approve student (from admin email link)
+if ($route === '/approve-student') {
+    $token = $_GET['token'] ?? '';
+    if (!$token) {
+        header('Location: ' . APP_URL . '/login/admin');
+        exit;
+    }
+    require_once __DIR__ . '/api/student_approval.php';
+    $result = processApproveStudent($token);
+    $approveResult = $result;
+    require VIEWS_PATH . '/auth/approve-result.php';
+    exit;
+}
+
+// Decline student (from admin email link) - GET: form, POST: process
+if ($route === '/decline-student') {
+    $token = $_GET['token'] ?? $_POST['token'] ?? '';
+    if (!$token) {
+        header('Location: ' . APP_URL . '/login/admin');
+        exit;
+    }
+    require_once __DIR__ . '/api/student_approval.php';
+    if ($method === 'POST' && !empty($_POST['reason'])) {
+        $result = processDeclineStudent($token, $_POST['reason']);
+        $declineResult = $result;
+        require VIEWS_PATH . '/auth/decline-result.php';
+        exit;
+    }
+    $declineToken = $token;
+    require VIEWS_PATH . '/auth/decline-form.php';
+    exit;
+}
 
 // Forgot password pages (standard page flow)
 if ($route === '/forgot-password/faculty' || $route === '/forgot-password/student') {
@@ -699,6 +775,7 @@ if (strpos($route, '/admin') === 0) {
     // Map routes to view files
     $adminViews = [
         'dashboard' => 'dashboard',
+        'registrations' => 'registrations',
         'students' => 'students',
         'subjects' => 'subjects',
         'classes' => 'classes',
@@ -716,6 +793,14 @@ if (strpos($route, '/admin') === 0) {
         $pageFile = VIEWS_PATH . '/admin/' . $adminViews[$adminPage] . '.php';
         if (file_exists($pageFile)) {
             $currentPage = $adminPage;
+            $pendingCount = getPendingRegistrationsCount();
+            $lastSeen = $_SESSION['registrations_last_seen'] ?? 0;
+            if ($currentPage === 'registrations') {
+                $_SESSION['registrations_last_seen'] = $pendingCount;
+                $pendingRegistrationsBadge = 0;
+            } else {
+                $pendingRegistrationsBadge = max(0, $pendingCount - $lastSeen);
+            }
             require VIEWS_PATH . '/admin/layout.php';
             exit;
         }

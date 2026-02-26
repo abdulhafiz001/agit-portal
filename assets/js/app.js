@@ -90,7 +90,8 @@ const API = {
         const config = {
             ...defaults,
             ...options,
-            headers: { ...defaults.headers, ...options.headers }
+            headers: { ...defaults.headers, ...options.headers },
+            credentials: 'include'
         };
 
         // Remove Content-Type for FormData (browser sets it with boundary)

@@ -81,7 +81,7 @@ function getFacultyDashboardStats() {
     $classes->execute([$lecturerId]);
     $myClasses = $classes->fetchAll();
     
-    // My subjects
+    // My courses
     $subjects = $db->prepare("
         SELECT s.id, s.name, s.code 
         FROM subjects s 

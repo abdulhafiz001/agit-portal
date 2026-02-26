@@ -8,6 +8,7 @@
  * Send JSON response and exit
  */
 function jsonResponse($data, $statusCode = 200) {
+    while (ob_get_level()) ob_end_clean();
     http_response_code($statusCode);
     header('Content-Type: application/json');
     echo json_encode($data);
@@ -165,6 +166,20 @@ function generateCSRF() {
 function verifyCSRF($token) {
     initSession();
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/**
+ * Get count of pending student registrations (for notification badge)
+ */
+function getPendingRegistrationsCount() {
+    try {
+        $db = getDB();
+        $hasApproval = (bool) $db->query("SHOW COLUMNS FROM students LIKE 'approval_status'")->fetch();
+        if (!$hasApproval) return 0;
+        return (int) $db->query("SELECT COUNT(*) FROM students WHERE approval_status = 'pending'")->fetchColumn();
+    } catch (Exception $e) {
+        return 0;
+    }
 }
 
 /**

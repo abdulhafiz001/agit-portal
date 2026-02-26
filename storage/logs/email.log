@@ -1,0 +1,7 @@
+2026-02-26 07:07:09 [send] To: easytechwork01@gmail.com | Error: SMTP Error: Could not authenticate.
+2026-02-26 07:07:26 [send] To: easytechwork01@gmail.com | Error: SMTP Error: Could not authenticate.
+2026-02-26 07:11:49 [send] To: easytechwork01@gmail.com | Error: SMTP Error: Could not authenticate.
+2026-02-26 07:12:09 [send] To: easytechwork01@gmail.com | Error: SMTP Error: Could not authenticate.
+2026-02-26 07:12:56 [send] To: admin@agitacademy.com | Error: SMTP Error: Could not authenticate.
+2026-02-26 07:13:44 [send] To: admin@agitacademy.com | Error: SMTP Error: Could not connect to SMTP host. Failed to connect to server SMTP server error: Failed to connect to server SMTP code: 10060 Additional SMTP info: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2026-02-26 07:31:57 [send] To: admin@agitacademy.com | Error: SMTP Error: Could not connect to SMTP host. Failed to connect to server SMTP server error: Failed to connect to server SMTP code: 10060 Additional SMTP info: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
