@@ -117,31 +117,60 @@ function handleRegister() {
             $className = $classStmt->fetchColumn() ?: 'N/A';
         }
 
-        if ($hasTokens) {
-            try {
+        $hasEmailVerification = (bool) $db->query("SHOW TABLES LIKE 'email_verification_codes'")->fetch();
+        $verifyToken = null;
+
+        if ($hasEmailVerification) {
+            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $verifyToken = bin2hex(random_bytes(32));
+            $expiresAt = date('Y-m-d H:i:s', time() + 900);
+            $db->prepare("INSERT INTO email_verification_codes (token, student_id, email, code, expires_at) VALUES (?, ?, ?, ?, ?)")
+                ->execute([$verifyToken, $studentId, $email, $code, $expiresAt]);
+
+            $verifyEmailData = [
+                'to' => $email,
+                'name' => $data['name'],
+                'code' => $code,
+                'expiry_minutes' => 15,
+            ];
+            register_shutdown_function(function () use ($verifyEmailData) {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                }
                 require_once __DIR__ . '/../helpers/mail.php';
                 require_once __DIR__ . '/../helpers/email_templates.php';
-                $contactEmail = getSetting('contact_email', 'admin@agitacademy.com');
-                $approveUrl = APP_URL . '/approve-student?token=' . $approveToken;
-                $declineUrl = APP_URL . '/decline-student?token=' . $declineToken;
-                $adminEmailBody = getAdminNewStudentEmailTemplate([
-                    'name' => $data['name'],
-                    'email' => $email,
-                    'phone' => $data['phone'] ?? 'N/A',
-                    'class' => $className,
-                    'gender' => $gender ?? 'N/A',
-                    'approveUrl' => $approveUrl,
-                    'declineUrl' => $declineUrl,
-                ]);
-                sendSmtpEmail($contactEmail, 'AGIT Academy – New Student Registration: ' . $data['name'], $adminEmailBody, 'AGIT Academy');
-            } catch (Throwable $mailErr) {
-                if (function_exists('logEmailError')) {
-                    logEmailError('registration', getSetting('contact_email', 'admin@agitacademy.com'), $mailErr->getMessage());
-                }
-            }
+                $body = getStudentVerificationEmailTemplate($verifyEmailData);
+                sendSmtpEmail($verifyEmailData['to'], 'AGIT Academy – Verify Your Email', $body, 'AGIT Academy');
+            });
         }
 
-        jsonResponse(['success' => true, 'message' => 'Registration successful! Please wait for admin approval.', 'redirect' => APP_URL . '/register/success']);
+        if ($hasTokens) {
+            $adminEmailData = [
+                'contactEmail' => getSetting('contact_email', 'admin@agitacademy.com'),
+                'name' => $data['name'],
+                'email' => $email,
+                'phone' => $data['phone'] ?? 'N/A',
+                'class' => $className,
+                'gender' => $gender ?? 'N/A',
+                'approveUrl' => APP_URL . '/approve-student?token=' . $approveToken,
+                'declineUrl' => APP_URL . '/decline-student?token=' . $declineToken,
+            ];
+            register_shutdown_function(function () use ($adminEmailData) {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                }
+                require_once __DIR__ . '/../helpers/mail.php';
+                require_once __DIR__ . '/../helpers/email_templates.php';
+                $body = getAdminNewStudentEmailTemplate($adminEmailData);
+                sendSmtpEmail($adminEmailData['contactEmail'], 'AGIT Academy – New Student Registration: ' . $adminEmailData['name'], $body, 'AGIT Academy');
+            });
+        }
+
+        if ($hasEmailVerification && $verifyToken) {
+            jsonResponse(['success' => true, 'message' => 'Verification code sent to your email. Please verify to continue.', 'redirect' => APP_URL . '/register/verify?t=' . $verifyToken]);
+        } else {
+            jsonResponse(['success' => true, 'message' => 'Registration successful! Please wait for admin approval.', 'redirect' => APP_URL . '/register/success']);
+        }
     } catch (Exception $e) {
         jsonResponse(['success' => false, 'message' => 'Registration failed: ' . $e->getMessage()], 500);
     }
@@ -220,6 +249,134 @@ function processResetPassword($email, $code, $newPassword, $confirmPassword, $ro
     $db->prepare("UPDATE {$table} SET password = ? WHERE id = ?")->execute([hashPassword($newPassword), $row['user_id']]);
     $db->prepare("UPDATE password_reset_codes SET used_at = NOW() WHERE id = ?")->execute([$row['id']]);
     return ['success' => true, 'message' => 'Password reset successfully. You can now login.'];
+}
+
+/**
+ * Get verification details (email) for display on verify page (API)
+ */
+function handleGetVerificationDetails() {
+    $token = trim($_GET['token'] ?? '');
+
+    if (!$token) {
+        jsonResponse(['success' => false, 'message' => 'Token required.'], 400);
+    }
+
+    $db = getDB();
+    $hasTable = (bool) $db->query("SHOW TABLES LIKE 'email_verification_codes'")->fetch();
+    if (!$hasTable) {
+        jsonResponse(['success' => false, 'message' => 'Email verification not configured.'], 500);
+    }
+
+    $stmt = $db->prepare("SELECT email FROM email_verification_codes WHERE token = ? AND used_at IS NULL AND expires_at > NOW()");
+    $stmt->execute([$token]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        jsonResponse(['success' => false, 'message' => 'Invalid or expired verification link.'], 404);
+    }
+
+    jsonResponse(['success' => true, 'email' => $row['email']]);
+}
+
+/**
+ * Verify student email with 6-digit code (API)
+ */
+function handleVerifyEmail() {
+    $data = getPostData();
+    $token = trim($data['token'] ?? '');
+    $code = trim($data['code'] ?? '');
+
+    if (!$token || !$code) {
+        jsonResponse(['success' => false, 'message' => 'Token and code are required.'], 400);
+    }
+
+    $db = getDB();
+    $hasTable = (bool) $db->query("SHOW TABLES LIKE 'email_verification_codes'")->fetch();
+    if (!$hasTable) {
+        jsonResponse(['success' => false, 'message' => 'Email verification not configured.'], 500);
+    }
+
+    $stmt = $db->prepare("SELECT * FROM email_verification_codes WHERE token = ? AND used_at IS NULL AND expires_at > NOW()");
+    $stmt->execute([$token]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        jsonResponse(['success' => false, 'message' => 'Invalid or expired verification link. Please register again.'], 400);
+    }
+
+    if ($row['code'] !== $code) {
+        jsonResponse(['success' => false, 'message' => 'Invalid verification code. Please try again.'], 400);
+    }
+
+    $db->prepare("UPDATE email_verification_codes SET used_at = NOW() WHERE id = ?")->execute([$row['id']]);
+
+    $_SESSION['registration_verified'] = (int) $row['student_id'];
+    jsonResponse(['success' => true, 'message' => 'Email verified successfully!', 'redirect' => APP_URL . '/register/success']);
+}
+
+/**
+ * Resend verification code (API)
+ */
+function handleResendVerificationCode() {
+    $data = getPostData();
+    $token = trim($data['token'] ?? '');
+    $newEmail = !empty($data['email']) ? strtolower(trim($data['email'])) : null;
+
+    if (!$token) {
+        jsonResponse(['success' => false, 'message' => 'Token is required.'], 400);
+    }
+
+    $db = getDB();
+    $hasTable = (bool) $db->query("SHOW TABLES LIKE 'email_verification_codes'")->fetch();
+    if (!$hasTable) {
+        jsonResponse(['success' => false, 'message' => 'Email verification not configured.'], 500);
+    }
+
+    $stmt = $db->prepare("SELECT ev.*, s.name FROM email_verification_codes ev JOIN students s ON s.id = ev.student_id WHERE ev.token = ? AND ev.used_at IS NULL AND ev.expires_at > NOW()");
+    $stmt->execute([$token]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        jsonResponse(['success' => false, 'message' => 'Invalid or expired verification link. Please register again.'], 400);
+    }
+
+    $email = $newEmail ?: $row['email'];
+    if (!isValidEmail($email)) {
+        jsonResponse(['success' => false, 'message' => 'Invalid email address.'], 400);
+    }
+
+    $existingStudent = $db->prepare("SELECT id FROM students WHERE email = ? AND id != ?");
+    $existingStudent->execute([$email, $row['student_id']]);
+    if ($existingStudent->fetch()) {
+        jsonResponse(['success' => false, 'message' => 'This email is already registered.'], 400);
+    }
+
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    if (!rateLimit('resend_verify_' . $ip, 5, 15)) {
+        jsonResponse(['success' => false, 'message' => 'Too many requests. Please wait a minute before resending.'], 429);
+    }
+
+    $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expiresAt = date('Y-m-d H:i:s', time() + 900);
+    $db->prepare("UPDATE email_verification_codes SET email = ?, code = ?, expires_at = ? WHERE id = ?")
+        ->execute([$email, $code, $expiresAt, $row['id']]);
+
+    if ($newEmail) {
+        $db->prepare("UPDATE students SET email = ? WHERE id = ?")->execute([$email, $row['student_id']]);
+    }
+
+    $verifyEmailData = ['to' => $email, 'name' => $row['name'], 'code' => $code, 'expiry_minutes' => 15];
+    register_shutdown_function(function () use ($verifyEmailData) {
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+        require_once __DIR__ . '/../helpers/mail.php';
+        require_once __DIR__ . '/../helpers/email_templates.php';
+        $body = getStudentVerificationEmailTemplate($verifyEmailData);
+        sendSmtpEmail($verifyEmailData['to'], 'AGIT Academy – Verify Your Email', $body, 'AGIT Academy');
+    });
+
+    jsonResponse(['success' => true, 'message' => 'A new verification code has been sent to your email.']);
 }
 
 /**

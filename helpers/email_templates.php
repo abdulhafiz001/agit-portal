@@ -175,6 +175,58 @@ function getStudentRejectedEmailTemplate($data) {
 HTML;
 }
 
+function getStudentVerificationEmailTemplate($data) {
+    $name = htmlspecialchars($data['name'] ?? '');
+    $code = htmlspecialchars($data['code'] ?? '');
+    $expiryMinutes = (int) ($data['expiry_minutes'] ?? 15);
+
+    return <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; background: #f1f5f9; }
+        .container { max-width: 520px; margin: 0 auto; padding: 24px; }
+        .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); }
+        .header { background: linear-gradient(135deg, #4a4de5 0%, #5b6cf1 100%); color: white; padding: 24px; text-align: center; }
+        .header h1 { margin: 0; font-size: 20px; font-weight: 700; }
+        .preheader { display:none!important; visibility:hidden; opacity:0; color:transparent; height:0; width:0; overflow:hidden; mso-hide:all; }
+        .content { padding: 24px; }
+        .muted { color: #64748b; font-size: 14px; }
+        .code-wrap { margin: 16px 0; }
+        .code-box { background: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 12px; padding: 18px 16px; text-align: center; }
+        .code { font-size: 28px; font-weight: 800; letter-spacing: 8px; color: #1e293b; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+        .footer { padding: 16px 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="preheader">Your AGIT Academy verification code is {$code}. Expires in {$expiryMinutes} minutes.</div>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Verify your email – AGIT Academy</h1>
+            </div>
+            <div class="content">
+                <p style="margin:0 0 10px 0; font-size:15px;"><strong>Hi {$name},</strong></p>
+                <p class="muted" style="margin:0 0 14px 0;">Use the 6-digit code below to complete your registration.</p>
+                <div class="code-wrap">
+                    <div class="code-box">
+                        <div class="code">{$code}</div>
+                    </div>
+                </div>
+                <p class="muted" style="margin:14px 0 0 0;">This code expires in {$expiryMinutes} minutes. If you did not create an account, please ignore this email.</p>
+            </div>
+            <div class="footer">
+                AGIT Academy – Excellence in Education
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+}
+
 function getForgotPasswordEmailTemplate($code) {
     $code = htmlspecialchars($code);
     return <<<HTML

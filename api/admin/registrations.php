@@ -108,7 +108,14 @@ function approveRegistration($id) {
                 'matric_no' => $matricNo,
                 'login_url' => APP_URL . '/login/student',
             ]);
-            sendSmtpEmail($s['email'], 'AGIT Academy – Your Application Has Been Approved!', $body, 'AGIT Academy');
+            $to = $s['email'];
+            $subject = 'AGIT Academy – Your Application Has Been Approved!';
+            register_shutdown_function(function () use ($to, $subject, $body) {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                }
+                sendSmtpEmail($to, $subject, $body, 'AGIT Academy');
+            });
         } catch (Throwable $e) {
             if (function_exists('logEmailError')) {
                 logEmailError('approve', $s['email'] ?? '', $e->getMessage());
@@ -142,7 +149,14 @@ function declineRegistration($id) {
             require_once __DIR__ . '/../../helpers/mail.php';
             require_once __DIR__ . '/../../helpers/email_templates.php';
             $body = getStudentRejectedEmailTemplate(['name' => $s['name'], 'reason' => $reason]);
-            sendSmtpEmail($s['email'], 'AGIT Academy – Application Update', $body, 'AGIT Academy');
+            $to = $s['email'];
+            $subject = 'AGIT Academy – Application Update';
+            register_shutdown_function(function () use ($to, $subject, $body) {
+                if (function_exists('fastcgi_finish_request')) {
+                    @fastcgi_finish_request();
+                }
+                sendSmtpEmail($to, $subject, $body, 'AGIT Academy');
+            });
         } catch (Throwable $e) {
             if (function_exists('logEmailError')) {
                 logEmailError('decline', $s['email'] ?? '', $e->getMessage());

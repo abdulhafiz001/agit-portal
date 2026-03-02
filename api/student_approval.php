@@ -59,7 +59,14 @@ function processApproveStudent($token) {
         'matric_no' => $matricNo,
         'login_url' => $loginUrl,
     ]);
-    sendSmtpEmail($student['email'], 'AGIT Academy – Your Application Has Been Approved!', $body, 'AGIT Academy');
+    $to = $student['email'];
+    $subject = 'AGIT Academy – Your Application Has Been Approved!';
+    register_shutdown_function(function () use ($to, $subject, $body) {
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+        sendSmtpEmail($to, $subject, $body, 'AGIT Academy');
+    });
 
     return ['success' => true, 'message' => 'Student approved successfully. Matric number ' . $matricNo . ' has been assigned and the student has been notified.'];
 }
@@ -100,7 +107,14 @@ function processDeclineStudent($token, $reason) {
     }
 
     $body = getStudentRejectedEmailTemplate(['name' => $student['name'], 'reason' => $reason]);
-    sendSmtpEmail($student['email'], 'AGIT Academy – Application Update', $body, 'AGIT Academy');
+    $to = $student['email'];
+    $subject = 'AGIT Academy – Application Update';
+    register_shutdown_function(function () use ($to, $subject, $body) {
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+        sendSmtpEmail($to, $subject, $body, 'AGIT Academy');
+    });
 
     return ['success' => true, 'message' => 'Application declined. The student has been notified.'];
 }

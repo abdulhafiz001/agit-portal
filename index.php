@@ -66,6 +66,21 @@ if (strpos($route, '/api/') === 0) {
         handleResetPassword();
         exit;
     }
+    if ($route === '/api/auth/verification-details' && $method === 'GET') {
+        require __DIR__ . '/api/auth.php';
+        handleGetVerificationDetails();
+        exit;
+    }
+    if ($route === '/api/auth/verify-email' && $method === 'POST') {
+        require __DIR__ . '/api/auth.php';
+        handleVerifyEmail();
+        exit;
+    }
+    if ($route === '/api/auth/resend-verification' && $method === 'POST') {
+        require __DIR__ . '/api/auth.php';
+        handleResendVerificationCode();
+        exit;
+    }
 
     // Public APIs (no auth)
     if ($route === '/api/contact' && $method === 'POST') {
@@ -693,7 +708,17 @@ if ($route === '/register/student') {
     require VIEWS_PATH . '/auth/register.php';
     exit;
 }
+if ($route === '/register/verify') {
+    require VIEWS_PATH . '/auth/register-verify.php';
+    exit;
+}
 if ($route === '/register/success') {
+    if (empty($_SESSION['registration_verified'])) {
+        header('Location: ' . APP_URL . '/register/student');
+        exit;
+    }
+    $registrationVerified = $_SESSION['registration_verified'];
+    unset($_SESSION['registration_verified']);
     require VIEWS_PATH . '/auth/register-success.php';
     exit;
 }

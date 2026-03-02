@@ -47,6 +47,27 @@ function sendSmtpEmail($to, $subject, $body, $fromName = 'AGIT Portal') {
     $host = trim(getSetting('smtp_host', 'smtp.gmail.com'));
     $port = (int) getSetting('smtp_port', '465');
     $encryption = getSetting('smtp_encryption', 'ssl');
+    $timeout = (int) getSetting('smtp_timeout', '12');
+    $replyTo = getSetting('contact_email', $username);
+    if (!$replyTo || !isValidEmail($replyTo)) {
+        $replyTo = $username;
+    }
+
+    $altBody = html_entity_decode(
+        trim(
+            preg_replace('/[ \t]+/', ' ',
+                preg_replace('/\s*\n\s*/', "\n",
+                    strip_tags(
+                        preg_replace('/<br\s*\/?>/i', "\n",
+                            preg_replace('/<\/p>\s*/i', "\n\n", $body)
+                        )
+                    )
+                )
+            )
+        ),
+        ENT_QUOTES,
+        'UTF-8'
+    );
 
     $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
     try {
@@ -56,6 +77,9 @@ function sendSmtpEmail($to, $subject, $body, $fromName = 'AGIT Portal') {
         $mail->Username   = $username;
         $mail->Password   = $password;
         $mail->CharSet    = 'UTF-8';
+        $mail->Timeout    = $timeout > 0 ? $timeout : 12;
+        $mail->XMailer    = 'AGIT Academy Mailer';
+        $mail->addCustomHeader('X-Auto-Response-Suppress', 'All');
 
         if ($port === 587 || $encryption === 'tls') {
             $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
@@ -66,11 +90,12 @@ function sendSmtpEmail($to, $subject, $body, $fromName = 'AGIT Portal') {
         }
 
         $mail->setFrom($username, $fromName);
+        $mail->addReplyTo($replyTo, 'AGIT Academy');
         $mail->addAddress($to);
         $mail->isHTML(true);
         $mail->Subject = $subject;
         $mail->Body    = $body;
-        $mail->AltBody = strip_tags($body);
+        $mail->AltBody = $altBody;
 
         $mail->send();
         return ['success' => true, 'message' => 'Email sent successfully.'];
