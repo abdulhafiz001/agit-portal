@@ -458,7 +458,7 @@
     <script>window.APP_URL = <?= json_encode(APP_URL) ?>;</script>
     <script src="<?= APP_URL ?>/assets/js/app.js"></script>
     <script>
-        const APP_URL = window.APP_URL || <?= json_encode(APP_URL) ?>;
+        // APP_URL is defined globally in assets/js/app.js (and window.APP_URL is set above)
 
         // Contact form submit
         document.getElementById('contact-form-el').addEventListener('submit', async (e) => {

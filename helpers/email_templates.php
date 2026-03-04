@@ -175,6 +175,80 @@ function getStudentRejectedEmailTemplate($data) {
 HTML;
 }
 
+function getStudentWelcomeCreatedByAdminEmailTemplate($data) {
+    $name = htmlspecialchars($data['name'] ?? '');
+    $email = htmlspecialchars($data['email'] ?? '');
+    $pass = htmlspecialchars($data['pass'] ?? '');
+    $loginUrl = $data['login_url'] ?? '#';
+
+    return <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 0; background: #f1f5f9; }
+        .container { max-width: 560px; margin: 0 auto; padding: 24px; }
+        .card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,.1); }
+        .header { background: linear-gradient(135deg, #4a4de5 0%, #5b6cf1 100%); color: white; padding: 26px 24px; text-align: center; }
+        .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+        .header p { margin: 8px 0 0; opacity: .95; font-size: 14px; }
+        .content { padding: 28px 24px; }
+        .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; }
+        .label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+        .value { font-size: 15px; color: #0f172a; font-weight: 600; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+        .btn { display: inline-block; padding: 14px 22px; border-radius: 10px; font-weight: 700; font-size: 14px; text-decoration: none; }
+        .btn-primary { background: #4a4de5; color: white !important; }
+        .btn-secondary { background: #0f172a; color: white !important; }
+        .warn { margin-top: 18px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 12px; padding: 14px; font-size: 13px; }
+        .footer { padding: 18px 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; text-align: center; }
+        .btn-row { margin-top: 18px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>Welcome to AGIT Academy</h1>
+                <p>Your student account has been created and approved.</p>
+            </div>
+            <div class="content">
+                <p style="margin:0 0 14px 0;">Hi <strong>{$name}</strong>,</p>
+                <p style="margin:0 0 12px 0; color:#1e293b;">
+                    You have been accepted into AGIT Academy. We are pleased to welcome you to our learning community.
+                </p>
+                <p style="margin:0 0 12px 0; color:#64748b; font-size:14px;">
+                    Your student account is ready. Below are your sign-in details for the student portal, where you can view your courses, assignments, and academic progress.
+                </p>
+
+                <div class="box">
+                    <div class="label">Login Email</div>
+                    <div class="value mono">{$email}</div>
+                </div>
+                <div class="box">
+                    <div class="label">Access code</div>
+                    <div class="value mono">{$pass}</div>
+                </div>
+
+                <p style="margin:16px 0 0 0; color:#64748b; font-size:13px;">
+                    Use the button below to sign in. We recommend saving this email or storing your access code in a secure place for future reference.
+                </p>
+
+                <div class="btn-row">
+                    <a href="{$loginUrl}" class="btn btn-primary">Login Now</a>
+                </div>
+            </div>
+            <div class="footer">
+                AGIT Academy – Excellence in Education
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+}
+
 function getStudentVerificationEmailTemplate($data) {
     $name = htmlspecialchars($data['name'] ?? '');
     $code = htmlspecialchars($data['code'] ?? '');

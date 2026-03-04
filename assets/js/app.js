@@ -3,7 +3,8 @@
  */
 
 // Use window.APP_URL if set by PHP (before this script), else fallback
-const APP_URL = (typeof window !== 'undefined' && window.APP_URL) || '/agit-portal';
+// Use var so duplicate loads don't throw "already declared"
+var APP_URL = (typeof window !== 'undefined' && window.APP_URL) || '/agit-portal';
 
 // ============================================================
 // Toast Notifications (Toastify style)

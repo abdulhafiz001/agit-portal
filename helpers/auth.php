@@ -85,6 +85,7 @@ function loginUser($email, $password, $role) {
     if ($role === 'student') {
         $_SESSION['matric_no'] = $user['matric_no'];
         $_SESSION['class_id'] = $user['class_id'];
+        $_SESSION['must_change_password'] = !empty($user['must_change_password']) ? 1 : 0;
     }
 
     // Update last login

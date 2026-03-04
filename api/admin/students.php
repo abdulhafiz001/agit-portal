@@ -82,12 +82,21 @@ function createStudent() {
     $stmt->execute([$data['email'], $data['matric_no']]);
     if ($stmt->fetch()) jsonResponse(['success' => false, 'message' => 'Email or Matric No already exists.'], 400);
     
-    $password = hashPassword($data['password'] ?? 'password');
+    $rawPassword = trim((string)($data['password'] ?? ''));
+    if ($rawPassword === '') {
+        $rawPassword = (string) getSetting('default_password', 'password');
+    }
+    if (strlen($rawPassword) < 6) {
+        $rawPassword = 'password';
+    }
+    $password = hashPassword($rawPassword);
     
     $hasApproval = (bool) $db->query("SHOW COLUMNS FROM students LIKE 'approval_status'")->fetch();
+    $hasMustChange = (bool) $db->query("SHOW COLUMNS FROM students LIKE 'must_change_password'")->fetch();
     $cols = "name, email, matric_no, class_id, password, phone, gender, date_of_birth, address, guardian_name, guardian_phone, status";
     $vals = "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active'";
     if ($hasApproval) { $cols .= ", approval_status"; $vals .= ", 'approved'"; }
+    if ($hasMustChange) { $cols .= ", must_change_password"; $vals .= ", 1"; }
     $stmt = $db->prepare("INSERT INTO students ($cols) VALUES ($vals)");
     $stmt->execute([
         sanitize($data['name']),
@@ -102,6 +111,24 @@ function createStudent() {
         sanitize($data['guardian_name'] ?? ''),
         sanitize($data['guardian_phone'] ?? ''),
     ]);
+
+    $studentEmail = sanitize($data['email']);
+    $studentName = sanitize($data['name']);
+    $loginUrl = APP_URL . '/login/student';
+    register_shutdown_function(function () use ($studentEmail, $studentName, $loginUrl, $rawPassword) {
+        if (function_exists('fastcgi_finish_request')) {
+            @fastcgi_finish_request();
+        }
+        require_once __DIR__ . '/../../helpers/mail.php';
+        require_once __DIR__ . '/../../helpers/email_templates.php';
+        $body = getStudentWelcomeCreatedByAdminEmailTemplate([
+            'name' => $studentName,
+            'email' => $studentEmail,
+            'pass' => $rawPassword,
+            'login_url' => $loginUrl,
+        ]);
+        sendSmtpEmail($studentEmail, 'Welcome to AGIT Academy – Your Portal Access', $body, 'AGIT Academy');
+    });
     
     logActivity('admin', $_SESSION['user_id'], 'create_student', 'Created student: ' . $data['name']);
     jsonResponse(['success' => true, 'message' => 'Student created successfully.']);

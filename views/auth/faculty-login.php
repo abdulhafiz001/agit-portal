@@ -127,7 +127,7 @@
     <script>window.APP_URL = <?= json_encode(APP_URL) ?>;</script>
     <script src="<?= APP_URL ?>/assets/js/app.js"></script>
     <script>
-        const APP_URL = '<?= APP_URL ?>';
+        // APP_URL is defined globally in assets/js/app.js (and window.APP_URL is set above)
         function togglePassword() {
             const pwd = document.getElementById('password');
             const icon = document.getElementById('toggle-icon');

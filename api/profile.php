@@ -100,6 +100,17 @@ function changePassword() {
     $hashed = hashPassword($newPass);
     $db->prepare("UPDATE {$table} SET password = ? WHERE id = ?")->execute([$hashed, $userId]);
 
+    // Clear forced-password-change flag for students
+    if ($role === 'student') {
+        try {
+            $hasMustChange = (bool) $db->query("SHOW COLUMNS FROM students LIKE 'must_change_password'")->fetch();
+            if ($hasMustChange) {
+                $db->prepare("UPDATE students SET must_change_password = 0 WHERE id = ?")->execute([$userId]);
+                $_SESSION['must_change_password'] = 0;
+            }
+        } catch (Throwable $e) {}
+    }
+
     jsonResponse(['success' => true, 'message' => 'Password changed successfully.']);
 }
 

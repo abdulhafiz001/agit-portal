@@ -1,5 +1,22 @@
 <!-- Student Dashboard -->
 <div class="space-y-6">
+    <?php if (!empty($_SESSION['must_change_password'])): ?>
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-start gap-3">
+            <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 flex-shrink-0">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-amber-900">Security reminder: change your default password</p>
+                <p class="text-xs text-amber-800 mt-1">Your account was created with a default/temporary password. Please change it now to keep your account secure.</p>
+            </div>
+        </div>
+        <a href="<?= APP_URL ?>/student/profile" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-lg transition">
+            <i class="fas fa-key"></i> Change Password
+        </a>
+    </div>
+    <?php endif; ?>
+
     <!-- Welcome Card -->
     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white relative overflow-hidden">
         <div class="absolute inset-0 opacity-10"><svg class="w-full h-full" viewBox="0 0 400 200"><circle cx="50" cy="50" r="80" fill="white"/><circle cx="350" cy="150" r="120" fill="white"/></svg></div>
