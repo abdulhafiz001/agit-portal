@@ -76,6 +76,10 @@ const Toast = {
 // ============================================================
 const API = {
     async request(url, options = {}) {
+        const silent = options.silent === true;
+        const opts = { ...options };
+        delete opts.silent;
+
         const defaults = {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
@@ -83,25 +87,26 @@ const API = {
             }
         };
 
-        if (options.body && !(options.body instanceof FormData)) {
+        if (opts.body && !(opts.body instanceof FormData)) {
             defaults.headers['Content-Type'] = 'application/json';
-            options.body = JSON.stringify(options.body);
+            opts.body = JSON.stringify(opts.body);
         }
 
         const config = {
             ...defaults,
-            ...options,
-            headers: { ...defaults.headers, ...options.headers },
+            ...opts,
+            headers: { ...defaults.headers, ...opts.headers },
             credentials: 'include'
         };
 
         // Remove Content-Type for FormData (browser sets it with boundary)
-        if (options.body instanceof FormData) {
+        if (opts.body instanceof FormData) {
             delete config.headers['Content-Type'];
         }
 
         try {
-            const response = await fetch(APP_URL + url, config);
+            const fullUrl = (url.startsWith('http') ? url : (APP_URL + url));
+            const response = await fetch(fullUrl, config);
             const contentType = response.headers.get('content-type') || '';
             let data = null;
 
@@ -116,12 +121,12 @@ const API = {
             }
             
             if (response.status === 401) {
-                Toast.error('Session expired. Redirecting to login...');
+                if (!silent) Toast.error('Session expired. Redirecting to login...');
                 setTimeout(() => window.location.href = APP_URL + '/', 2000);
                 return null;
             }
 
-            if (!response.ok && (!data || !data.success)) {
+            if (!response.ok && (!data || !data.success) && !silent) {
                 const msg = data?.message || `Request failed with status ${response.status}`;
                 Toast.error(msg);
             }
@@ -134,8 +139,8 @@ const API = {
         }
     },
 
-    get(url) {
-        return this.request(url, { method: 'GET' });
+    get(url, options = {}) {
+        return this.request(url, { ...options, method: 'GET' });
     },
 
     post(url, body) {

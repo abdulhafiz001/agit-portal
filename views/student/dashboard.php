@@ -25,10 +25,10 @@
                 <div id="dash-avatar" class="w-14 h-14 rounded-full border-2 border-white/30 bg-white/20 flex items-center justify-center overflow-hidden flex-shrink-0">
                     <span class="text-xl font-bold text-white"><?= strtoupper(substr($_SESSION['user_name'], 0, 2)) ?></span>
                 </div>
-                <div>
-                    <h2 class="text-xl font-bold">Welcome back, <?= $_SESSION['user_name'] ?>!</h2>
-                    <p class="text-blue-100 text-sm mt-1">Matric No: <?= $_SESSION['matric_no'] ?? 'N/A' ?></p>
-                    <p class="text-blue-200 text-xs mt-1" id="class-info">Loading...</p>
+                <div class="min-w-0 flex-1 overflow-hidden">
+                    <h2 class="text-xl font-bold truncate">Welcome back, <?= htmlspecialchars($_SESSION['user_name']) ?>!</h2>
+                    <p class="text-blue-100 text-sm mt-1">Matric No: <?= htmlspecialchars($_SESSION['matric_no'] ?? 'N/A') ?></p>
+                    <p class="text-blue-200 text-xs mt-1 truncate" id="class-info" title="">Loading...</p>
                 </div>
             </div>
             <div class="flex gap-3">
@@ -78,12 +78,12 @@
         </div>
         
         <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <div class="flex items-center justify-between">
-                <div>
+            <div class="flex items-center justify-between gap-3 min-w-0">
+                <div class="min-w-0 flex-1 overflow-hidden">
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">My Class</p>
-                    <p class="text-lg font-bold text-gray-900 mt-1 truncate" id="stat-class">--</p>
+                    <p class="text-lg font-bold text-gray-900 mt-1 truncate" id="stat-class" title="">--</p>
                 </div>
-                <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                <div class="w-12 h-12 flex-shrink-0 bg-emerald-100 rounded-xl flex items-center justify-center">
                     <i class="fas fa-school text-emerald-600 text-xl"></i>
                 </div>
             </div>
@@ -93,7 +93,7 @@
     <div class="grid lg:grid-cols-2 gap-6">
         <!-- My Subjects -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h3 class="font-semibold text-gray-900 text-sm mb-4">My Co</h3>
+            <h3 class="font-semibold text-gray-900 text-sm mb-4">My Courses</h3>
             <div id="subjects-list" class="space-y-3">
                 <div class="text-center py-4 text-gray-400 text-sm">Loading...</div>
             </div>
@@ -151,11 +151,20 @@ async function loadStudentDashboard() {
     
     const { stats, subjects, lecturers } = data.data;
     
-    document.getElementById('class-info').textContent = `Class: ${stats.class_name} (${stats.class_type || 'N/A'})`;
+    const classInfo = document.getElementById('class-info');
+    const classInfoText = `Class: ${stats.class_name} (${stats.class_type || 'N/A'})`;
+    if (classInfo) {
+        classInfo.textContent = classInfoText;
+        classInfo.title = classInfoText;
+    }
     document.getElementById('stat-subjects').textContent = stats.total_subjects;
     document.getElementById('stat-exams').textContent = stats.total_exams;
     document.getElementById('stat-classmates').textContent = stats.classmates;
-    document.getElementById('stat-class').textContent = stats.class_name;
+    const statClassEl = document.getElementById('stat-class');
+    if (statClassEl) {
+        statClassEl.textContent = stats.class_name;
+        statClassEl.title = stats.class_name || '';
+    }
     
     // Subjects list
     const subjectsList = document.getElementById('subjects-list');
@@ -223,10 +232,10 @@ async function loadTodaySchedule() {
 }
 
 async function loadProfilePic() {
-    const data = await API.get('/api/profile');
+    const data = await API.get('/api/profile', { silent: true });
     if (data?.success && data.data.profile_picture) {
         const container = document.getElementById('dash-avatar');
-        container.innerHTML = `<img src="${APP_URL}/uploads/${data.data.profile_picture}" class="w-full h-full object-cover">`;
+        if (container) container.innerHTML = `<img src="${APP_URL}/uploads/${data.data.profile_picture}" class="w-full h-full object-cover">`;
     }
 }
 

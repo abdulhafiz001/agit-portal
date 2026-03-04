@@ -12,7 +12,10 @@ function getProfile() {
     $stmt = $db->prepare("SELECT * FROM {$table} WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
-    if (!$user) jsonResponse(['success' => false, 'message' => 'User not found.'], 404);
+    if (!$user) {
+        logoutUser();
+        jsonResponse(['success' => false, 'message' => 'Session invalid. Please log in again.'], 401);
+    }
     unset($user['password']);
 
     if ($role === 'student') {
