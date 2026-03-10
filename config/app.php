@@ -43,7 +43,7 @@ define('BASE_PATH', dirname(__DIR__));
 define('UPLOADS_PATH', BASE_PATH . '/uploads');
 define('VIEWS_PATH', BASE_PATH . '/views');
 
-// Session config
+// Session config - use role-specific session names so admin/student/lecturer can stay logged in in different tabs
 define('SESSION_LIFETIME', 3600); // 1 hour
 define('SESSION_NAME', 'AAMS_SESSION');
 

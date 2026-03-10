@@ -1,6 +1,10 @@
+# Disable directory listing for security
+Options -Indexes
+
 RewriteEngine On
-RewriteBase /agit-portal/
-SetEnv APP_URL http://localhost/agit-portal
+# LOCAL: RewriteBase /agit-portal/  |  PRODUCTION: RewriteBase /portal/
+RewriteBase /portal/
+# SetEnv APP_URL only in production vhost; app auto-detects from request otherwise
 
 
 # Don't rewrite existing files/directories

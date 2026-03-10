@@ -362,7 +362,9 @@ async function deleteStudent(id) {
     const yes = await confirmAction('Are you sure you want to delete this student? This action cannot be undone.');
     if (!yes) return;
     const data = await API.delete(`/api/admin/students/${id}`);
-    if (data && data.success) { Toast.success(data.message); loadStudents(currentPage); } else if (data) Toast.error(data.message);
+    if (data && data.success) { Toast.success(data.message); loadStudents(currentPage); }
+    else if (data) Toast.error(data.message || 'Delete failed.');
+    else Toast.error('Network error. Please try again.');
 }
 
 function showRestrict(id, name) {

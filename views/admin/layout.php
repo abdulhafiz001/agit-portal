@@ -226,7 +226,7 @@ if (!$isFullAccess && $currentPage !== 'dashboard' && $currentPage !== 'profile'
         async function handleLogout() {
             const yes = await confirmAction('Are you sure you want to logout?');
             if (yes) {
-                const data = await API.post('/api/auth/logout');
+                const data = await API.post('/api/auth/logout', { role: 'admin' });
                 if (data && data.success) {
                     Toast.success('Logged out successfully');
                     setTimeout(() => window.location.href = APP_URL + '/login/admin', 1000);

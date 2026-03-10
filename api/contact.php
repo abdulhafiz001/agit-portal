@@ -16,11 +16,11 @@ function submitContact() {
         jsonResponse(['success' => false, 'message' => 'Too many submissions. Please try again later.'], 429);
     }
 
-    $name = sanitize($data['name'] ?? '');
-    $email = sanitize($data['email'] ?? '');
-    $subject = sanitize($data['subject'] ?? 'AGIT Academy Enrollment Inquiry');
-    $message = sanitize($data['message'] ?? '');
-    $phone = sanitize($data['phone'] ?? '');
+    $name = sanitizeForDb($data['name'] ?? '');
+    $email = sanitizeForDb($data['email'] ?? '');
+    $subject = sanitizeForDb($data['subject'] ?? 'AGIT Academy Enrollment Inquiry');
+    $message = sanitizeForDb($data['message'] ?? '');
+    $phone = sanitizeForDb($data['phone'] ?? '');
 
     if (!$name || !$email || !$message) {
         jsonResponse(['success' => false, 'message' => 'Name, email and message are required.'], 400);

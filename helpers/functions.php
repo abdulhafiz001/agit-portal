@@ -39,13 +39,24 @@ function getPostData() {
 }
 
 /**
- * Sanitize input
+ * Sanitize input (for HTML output - encodes entities)
  */
 function sanitize($input) {
     if (is_array($input)) {
         return array_map('sanitize', $input);
     }
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * Sanitize for DB storage - trim and strip tags, no HTML encoding.
+ * Use htmlspecialchars() only when outputting to HTML.
+ */
+function sanitizeForDb($input) {
+    if (is_array($input)) {
+        return array_map('sanitizeForDb', $input);
+    }
+    return trim(strip_tags((string) $input));
 }
 
 /**

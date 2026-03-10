@@ -11,10 +11,7 @@ require_once __DIR__ . '/helpers/functions.php';
 require_once __DIR__ . '/helpers/auth.php';
 require_once __DIR__ . '/helpers/middleware.php';
 
-// Start session
-initSession();
-
-// Get request URI and parse route
+// Parse route first (needed for session context)
 $requestUri = $_SERVER['REQUEST_URI'];
 $requestPath = parse_url($requestUri, PHP_URL_PATH) ?: '/';
 $basePath = rtrim((string) parse_url(APP_URL, PHP_URL_PATH), '/');
@@ -25,6 +22,30 @@ if ($basePath && strpos($requestPath, $basePath) === 0) {
 }
 $route = rtrim($route, '/') ?: '/';
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Determine session context: admin/student/lecturer use separate sessions so they don't log each other out
+$sessionContext = null;
+if (strpos($route, '/api/auth/login') === 0 && $method === 'POST') {
+    $loginData = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];
+    $sessionContext = in_array($loginData['role'] ?? '', ['admin', 'student', 'lecturer']) ? $loginData['role'] : 'admin';
+} elseif (strpos($route, '/api/auth/logout') === 0 && $method === 'POST') {
+    $logoutData = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];
+    $sessionContext = in_array($logoutData['role'] ?? '', ['admin', 'student', 'lecturer']) ? $logoutData['role'] : null;
+} elseif (strpos($route, '/api/admin/') === 0 || strpos($route, '/login/admin') === 0) {
+    $sessionContext = 'admin';
+} elseif (strpos($route, '/api/student/') === 0 || strpos($route, '/login/student') === 0 || strpos($route, '/register/') === 0) {
+    $sessionContext = 'student';
+} elseif (strpos($route, '/api/faculty/') === 0 || strpos($route, '/login/faculty') === 0) {
+    $sessionContext = 'lecturer';
+} elseif (strpos($route, '/api/profile') === 0) {
+    // Profile used by all roles - use whichever session cookie is present
+    $sessionContext = 'admin';
+    if (!empty($_COOKIE[SESSION_NAME . '_student'])) $sessionContext = 'student';
+    elseif (!empty($_COOKIE[SESSION_NAME . '_lecturer'])) $sessionContext = 'lecturer';
+    elseif (!empty($_COOKIE[SESSION_NAME . '_admin'])) $sessionContext = 'admin';
+}
+
+initSession($sessionContext);
 
 // ============================================================
 // API ROUTES

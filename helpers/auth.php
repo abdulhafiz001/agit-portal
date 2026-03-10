@@ -5,11 +5,13 @@
  */
 
 /**
- * Start secure session
+ * Start secure session - uses role-specific session names so admin/student/lecturer can stay logged in in different tabs
+ * @param string|null $context 'admin'|'student'|'lecturer' - which session to use. null = admin
  */
-function initSession() {
+function initSession($context = null) {
     if (session_status() === PHP_SESSION_NONE) {
-        session_name(SESSION_NAME);
+        $name = SESSION_NAME . '_' . ($context ?: 'admin');
+        session_name($name);
         session_start();
     }
 }

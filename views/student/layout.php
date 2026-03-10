@@ -141,7 +141,7 @@
         async function handleLogout() {
             const yes = await confirmAction('Are you sure you want to logout?');
             if (yes) {
-                const data = await API.post('/api/auth/logout');
+                const data = await API.post('/api/auth/logout', { role: 'student' });
                 if (data && data.success) {
                     Toast.success('Logged out');
                     setTimeout(() => window.location.href = APP_URL + '/login/student', 1000);

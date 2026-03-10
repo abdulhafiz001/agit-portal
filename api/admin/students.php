@@ -182,8 +182,17 @@ function deleteStudent($id) {
     $db = getDB();
     if (!$id) jsonResponse(['success' => false, 'message' => 'Student ID required.'], 400);
     
-    $stmt = $db->prepare("DELETE FROM students WHERE id = ?");
+    $stmt = $db->prepare("SELECT id FROM students WHERE id = ?");
     $stmt->execute([$id]);
+    if (!$stmt->fetch()) jsonResponse(['success' => false, 'message' => 'Student not found.'], 404);
+    
+    try {
+        $stmt = $db->prepare("DELETE FROM students WHERE id = ?");
+        $stmt->execute([$id]);
+        if ($stmt->rowCount() === 0) jsonResponse(['success' => false, 'message' => 'Failed to delete student.'], 500);
+    } catch (PDOException $e) {
+        jsonResponse(['success' => false, 'message' => 'Cannot delete student: they may have linked records. Consider restricting instead.'], 400);
+    }
     
     logActivity('admin', $_SESSION['user_id'], 'delete_student', 'Deleted student ID: ' . $id);
     jsonResponse(['success' => true, 'message' => 'Student deleted successfully.']);
