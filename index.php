@@ -778,8 +778,9 @@ if ($route === '/decline-student') {
 }
 
 // Forgot password pages (standard page flow)
-if ($route === '/forgot-password/faculty' || $route === '/forgot-password/student') {
-    $forgotRole = ($route === '/forgot-password/faculty') ? 'lecturer' : 'student';
+if ($route === '/forgot-password/faculty' || $route === '/forgot-password/student' || $route === '/forgot-password/admin') {
+    $forgotRoles = ['/forgot-password/faculty' => 'lecturer', '/forgot-password/student' => 'student', '/forgot-password/admin' => 'admin'];
+    $forgotRole = $forgotRoles[$route];
     $forgotStep = 1;
     $forgotEmail = '';
     $forgotError = '';
@@ -806,7 +807,8 @@ if ($route === '/forgot-password/faculty' || $route === '/forgot-password/studen
             $confirmPassword = $_POST['confirm_password'] ?? '';
             $result = processResetPassword($email, $code, $newPassword, $confirmPassword, $forgotRole);
             if ($result['success']) {
-                $loginUrl = $forgotRole === 'lecturer' ? (APP_URL . '/login/faculty') : (APP_URL . '/login/student');
+                $loginUrls = ['lecturer' => '/login/faculty', 'admin' => '/login/admin', 'student' => '/login/student'];
+                $loginUrl = APP_URL . ($loginUrls[$forgotRole] ?? '/login/student');
                 header('Location: ' . $loginUrl . '?reset=success');
                 exit;
             }

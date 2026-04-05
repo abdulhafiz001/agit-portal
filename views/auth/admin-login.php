@@ -99,6 +99,7 @@
                             <input type="checkbox" class="w-4 h-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500">
                             <span class="text-sm text-gray-600">Remember me</span>
                         </label>
+                        <a href="<?= APP_URL ?>/forgot-password/admin" class="text-sm text-purple-600 hover:underline">Forgot password?</a>
                     </div>
 
                     <button type="submit" id="login-btn"
@@ -106,6 +107,13 @@
                         Sign In to Admin Panel
                     </button>
                 </form>
+
+                <?php if (!empty($_GET['reset']) && $_GET['reset'] === 'success'): ?>
+                <div class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-xl text-purple-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    Password reset successfully. You can now login.
+                </div>
+                <?php endif; ?>
 
                 <p class="text-center text-gray-400 text-xs mt-8">
                     &copy; <?= date('Y') ?> <?= APP_NAME ?>. Secure admin access.

@@ -189,18 +189,18 @@ function processForgotPasswordRequest($email, $role) {
     if (!$email || !isValidEmail($email)) {
         return ['success' => false, 'message' => 'Valid email is required.'];
     }
-    if (!in_array($role, ['student', 'lecturer'])) {
+    if (!in_array($role, ['student', 'lecturer', 'admin'])) {
         return ['success' => false, 'message' => 'Invalid role.'];
     }
     $db = getDB();
-    $table = $role === 'lecturer' ? 'lecturers' : 'students';
+    $tables = ['admin' => 'admins', 'lecturer' => 'lecturers', 'student' => 'students'];
+    $table = $tables[$role];
     $stmt = $db->prepare("SELECT id FROM {$table} WHERE email = ? AND status = 'active'");
     $stmt->execute([$email]);
     $user = $stmt->fetch();
     if (!$user) {
         return ['success' => false, 'message' => 'No account found with this email.'];
     }
-    // For students, also check approval_status
     if ($role === 'student') {
         $approval = $db->prepare("SELECT approval_status FROM students WHERE id = ?");
         $approval->execute([$user['id']]);
@@ -245,7 +245,8 @@ function processResetPassword($email, $code, $newPassword, $confirmPassword, $ro
     if (!$row) {
         return ['success' => false, 'message' => 'Invalid or expired code. Please request a new one.'];
     }
-    $table = $role === 'lecturer' ? 'lecturers' : 'students';
+    $tables = ['admin' => 'admins', 'lecturer' => 'lecturers', 'student' => 'students'];
+    $table = $tables[$role] ?? 'students';
     $db->prepare("UPDATE {$table} SET password = ? WHERE id = ?")->execute([hashPassword($newPassword), $row['user_id']]);
     $db->prepare("UPDATE password_reset_codes SET used_at = NOW() WHERE id = ?")->execute([$row['id']]);
     return ['success' => true, 'message' => 'Password reset successfully. You can now login.'];

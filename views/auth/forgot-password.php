@@ -7,14 +7,31 @@
  * $forgotError = error message to display
  * $forgotSuccess = success message to display
  */
+$isAdmin = ($forgotRole ?? 'student') === 'admin';
 $isFaculty = ($forgotRole ?? 'student') === 'lecturer';
 $step = (int) ($forgotStep ?? 1);
-$loginUrl = $isFaculty ? (APP_URL . '/login/faculty') : (APP_URL . '/login/student');
-$title = $isFaculty ? 'Faculty' : 'Student';
-$bgAccent = $isFaculty ? 'bg-emerald-100' : 'bg-blue-100';
-$textAccent = $isFaculty ? 'text-emerald-600' : 'text-blue-600';
-$ringAccent = $isFaculty ? 'focus:ring-emerald-500 focus:border-emerald-500' : 'focus:ring-blue-500 focus:border-blue-500';
-$btnAccent = $isFaculty ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700';
+$loginUrls = ['admin' => '/login/admin', 'lecturer' => '/login/faculty', 'student' => '/login/student'];
+$loginUrl = APP_URL . ($loginUrls[$forgotRole] ?? '/login/student');
+$titles = ['admin' => 'Admin', 'lecturer' => 'Faculty', 'student' => 'Student'];
+$title = $titles[$forgotRole] ?? 'Student';
+$slugs = ['admin' => 'admin', 'lecturer' => 'faculty', 'student' => 'student'];
+$slug = $slugs[$forgotRole] ?? 'student';
+if ($isAdmin) {
+    $bgAccent = 'bg-purple-100';
+    $textAccent = 'text-purple-600';
+    $ringAccent = 'focus:ring-purple-500 focus:border-purple-500';
+    $btnAccent = 'bg-purple-600 hover:bg-purple-700';
+} elseif ($isFaculty) {
+    $bgAccent = 'bg-emerald-100';
+    $textAccent = 'text-emerald-600';
+    $ringAccent = 'focus:ring-emerald-500 focus:border-emerald-500';
+    $btnAccent = 'bg-emerald-600 hover:bg-emerald-700';
+} else {
+    $bgAccent = 'bg-blue-100';
+    $textAccent = 'text-blue-600';
+    $ringAccent = 'focus:ring-blue-500 focus:border-blue-500';
+    $btnAccent = 'bg-blue-600 hover:bg-blue-700';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -55,14 +72,14 @@ $btnAccent = $isFaculty ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 h
             <?php endif; ?>
 
             <?php if ($step === 1): ?>
-            <form method="post" action="<?= APP_URL ?>/forgot-password/<?= $isFaculty ? 'faculty' : 'student' ?>" class="space-y-5">
+            <form method="post" action="<?= APP_URL ?>/forgot-password/<?= $slug ?>" class="space-y-5">
                 <input type="hidden" name="step" value="1">
                 <input type="hidden" name="role" value="<?= htmlspecialchars($forgotRole) ?>">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
                     <input type="email" name="email" required
                         class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 <?= $ringAccent ?> outline-none"
-                        placeholder="<?= $isFaculty ? 'lecturer@agit.edu' : 'student@agit.edu' ?>"
+                        placeholder="<?= $isAdmin ? 'admin@agit.edu' : ($isFaculty ? 'lecturer@agit.edu' : 'student@agit.edu') ?>"
                         value="<?= htmlspecialchars($forgotEmail ?? '') ?>">
                 </div>
                 <p class="text-sm text-gray-500">Enter your email and we'll send you a 6-digit code to reset your password.</p>
@@ -71,7 +88,7 @@ $btnAccent = $isFaculty ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 h
                 </button>
             </form>
             <?php else: ?>
-            <form method="post" action="<?= APP_URL ?>/forgot-password/<?= $isFaculty ? 'faculty' : 'student' ?>" class="space-y-5">
+            <form method="post" action="<?= APP_URL ?>/forgot-password/<?= $slug ?>" class="space-y-5">
                 <input type="hidden" name="step" value="2">
                 <input type="hidden" name="role" value="<?= htmlspecialchars($forgotRole) ?>">
                 <input type="hidden" name="email" value="<?= htmlspecialchars($forgotEmail ?? '') ?>">
@@ -97,7 +114,7 @@ $btnAccent = $isFaculty ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 h
                 <button type="submit" class="w-full py-3 <?= $btnAccent ?> text-white font-semibold rounded-xl transition text-sm">
                     Reset Password
                 </button>
-                <a href="<?= APP_URL ?>/forgot-password/<?= $isFaculty ? 'faculty' : 'student' ?>" class="block text-center text-sm text-gray-500 hover:text-gray-700">Request a new code</a>
+                <a href="<?= APP_URL ?>/forgot-password/<?= $slug ?>" class="block text-center text-sm text-gray-500 hover:text-gray-700">Request a new code</a>
             </form>
             <?php endif; ?>
         </div>
