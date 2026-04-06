@@ -90,6 +90,19 @@ function approveRegistration($id) {
         $db = getDB();
         require_once __DIR__ . '/../student_approval.php';
 
+        $data = getPostData();
+        $classId = !empty($data['class_id']) ? (int) $data['class_id'] : null;
+        if (!$classId) {
+            jsonResponse(['success' => false, 'message' => 'Please select a class for the student.'], 400);
+        }
+
+        $classStmt = $db->prepare("SELECT id, name FROM classes WHERE id = ? AND status = 'active'");
+        $classStmt->execute([$classId]);
+        $class = $classStmt->fetch();
+        if (!$class) {
+            jsonResponse(['success' => false, 'message' => 'Selected class not found or inactive.'], 400);
+        }
+
         $stmt = $db->prepare("SELECT id, name, email, approval_status FROM students WHERE id = ?");
         $stmt->execute([$id]);
         $s = $stmt->fetch();
@@ -97,8 +110,17 @@ function approveRegistration($id) {
         if ($s['approval_status'] !== 'pending') jsonResponse(['success' => false, 'message' => 'Student is not pending approval.'], 400);
 
         $matricNo = generateNextMatricNo();
-        $db->prepare("UPDATE students SET approval_status = 'approved', matric_no = ?, approved_at = NOW(), approved_by = ? WHERE id = ?")
-            ->execute([$matricNo, $_SESSION['user_id'], $id]);
+        $db->prepare("UPDATE students SET approval_status = 'approved', matric_no = ?, class_id = ?, approved_at = NOW(), approved_by = ? WHERE id = ?")
+            ->execute([$matricNo, $classId, $_SESSION['user_id'], $id]);
+
+        $courses = $db->prepare("
+            SELECT sub.name, sub.code FROM class_subjects cs
+            JOIN subjects sub ON sub.id = cs.subject_id
+            WHERE cs.class_id = ? AND sub.status = 'active'
+            ORDER BY sub.name
+        ");
+        $courses->execute([$classId]);
+        $courseList = $courses->fetchAll(PDO::FETCH_ASSOC);
 
         try {
             require_once __DIR__ . '/../../helpers/mail.php';
@@ -106,6 +128,8 @@ function approveRegistration($id) {
             $body = getStudentApprovedEmailTemplate([
                 'name' => $s['name'],
                 'matric_no' => $matricNo,
+                'class_name' => $class['name'],
+                'courses' => $courseList,
                 'login_url' => APP_URL . '/login/student',
             ]);
             $to = $s['email'];
@@ -122,8 +146,8 @@ function approveRegistration($id) {
             }
         }
 
-        logActivity('admin', $_SESSION['user_id'], 'approve_student', "Approved student #$id - $matricNo");
-        jsonResponse(['success' => true, 'message' => 'Student approved. Matric: ' . $matricNo]);
+        logActivity('admin', $_SESSION['user_id'], 'approve_student', "Approved student #$id - $matricNo - Class: {$class['name']}");
+        jsonResponse(['success' => true, 'message' => 'Student approved. Matric: ' . $matricNo . ' | Class: ' . $class['name']]);
     } catch (Throwable $e) {
         jsonResponse(['success' => false, 'message' => 'Approval failed: ' . $e->getMessage()], 500);
     }

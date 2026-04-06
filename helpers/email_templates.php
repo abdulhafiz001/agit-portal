@@ -82,7 +82,37 @@ HTML;
 function getStudentApprovedEmailTemplate($data) {
     $name = htmlspecialchars($data['name'] ?? '');
     $matricNo = htmlspecialchars($data['matric_no'] ?? '');
+    $className = htmlspecialchars($data['class_name'] ?? '');
     $loginUrl = $data['login_url'] ?? '#';
+    $courses = $data['courses'] ?? [];
+
+    $classSection = '';
+    if ($className) {
+        $classSection = <<<HTML
+                <div class="info-box">
+                    <div class="info-label">Assigned Class</div>
+                    <div class="info-value">{$className}</div>
+                </div>
+HTML;
+    }
+
+    $coursesSection = '';
+    if (!empty($courses)) {
+        $courseItems = '';
+        foreach ($courses as $c) {
+            $cName = htmlspecialchars($c['name'] ?? '');
+            $cCode = htmlspecialchars($c['code'] ?? '');
+            $courseItems .= "<li style=\"padding:6px 0;border-bottom:1px solid #e2e8f0;font-size:14px;\"><strong>{$cCode}</strong> – {$cName}</li>";
+        }
+        $coursesSection = <<<HTML
+                <div style="margin-top:20px;">
+                    <p style="font-size:14px;font-weight:600;color:#1e293b;margin-bottom:8px;">Courses you will be offering:</p>
+                    <ul style="list-style:none;padding:0;margin:0;background:#f8fafc;border-radius:10px;padding:4px 16px;">
+                        {$courseItems}
+                    </ul>
+                </div>
+HTML;
+    }
 
     return <<<HTML
 <!DOCTYPE html>
@@ -100,6 +130,9 @@ function getStudentApprovedEmailTemplate($data) {
         .matric-box { background: #f0fdf4; border: 2px dashed #10b981; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0; }
         .matric-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
         .matric-value { font-size: 24px; font-weight: 700; color: #059669; letter-spacing: 1px; }
+        .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 16px; text-align: center; margin: 16px 0; }
+        .info-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+        .info-value { font-size: 18px; font-weight: 700; color: #1d4ed8; }
         .btn { display: inline-block; padding: 16px 32px; background: #4a4de5; color: white !important; border-radius: 10px; font-weight: 600; font-size: 15px; text-decoration: none; margin-top: 16px; }
         .footer { padding: 20px 24px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; text-align: center; }
     </style>
@@ -117,7 +150,9 @@ function getStudentApprovedEmailTemplate($data) {
                     <div class="matric-label">Your Matriculation Number</div>
                     <div class="matric-value">{$matricNo}</div>
                 </div>
-                <p>You can now log in to access your dashboard, courses, and more.</p>
+                {$classSection}
+                {$coursesSection}
+                <p style="margin-top:20px;">You can now log in to access your dashboard, courses, and more.</p>
                 <p style="text-align:center"><a href="{$loginUrl}" class="btn">Go to Login</a></p>
             </div>
             <div class="footer">

@@ -47,6 +47,17 @@
         }
     }
 
+    let classesCache = null;
+    let classCoursesCache = {};
+
+    async function loadClasses() {
+        if (classesCache) return classesCache;
+        const d = await API.get('/api/admin/classes');
+        if (d && d.success) classesCache = d.data || [];
+        else classesCache = [];
+        return classesCache;
+    }
+
     async function loadPending() {
         const el = document.getElementById('pending-list');
         try {
@@ -66,11 +77,11 @@
                     <div>
                         <div class="font-semibold text-gray-900">${escapeHtml(s.name)}</div>
                         <div class="text-sm text-gray-500">${escapeHtml(s.email)}</div>
-                        <div class="text-sm text-gray-500">${escapeHtml(s.class_name || '')} • ${escapeHtml(s.phone || '')}</div>
+                        <div class="text-sm text-gray-500">${escapeHtml(s.phone || 'No phone')}</div>
                         <div class="text-xs text-gray-400 mt-1">Registered ${formatDate(s.created_at)}</div>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="window.approveStudent(${s.id})" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"><i class="fas fa-check mr-1"></i>Accept</button>
+                        <button onclick="window.showApproveModal(${s.id}, '${escapeHtml(s.name).replace(/'/g, "\\'")}', '${escapeHtml(s.email).replace(/'/g, "\\'")}')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"><i class="fas fa-check mr-1"></i>Accept</button>
                         <button onclick="window.showDeclineModal(${s.id})" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"><i class="fas fa-times mr-1"></i>Decline</button>
                     </div>
                 </div>
@@ -84,13 +95,72 @@
     function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
     function formatDate(d) { if (!d) return ''; const x = new Date(d); return x.toLocaleDateString() + ' ' + x.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}); }
 
-    async function approveStudent(id) {
-        const yes = await confirmAction('Approve this student? A matric number will be generated and they will be notified.');
-        if (!yes) return;
-        const d = await API.post('/api/admin/registrations/' + id + '/approve', {});
-        if (d && d.success) { Toast.success(d.message); loadStats(); loadPending(); }
-        else if (d) Toast.error(d.message);
+    async function showApproveModal(id, name, email) {
+        document.getElementById('approve-id').value = id;
+        document.getElementById('approve-student-name').textContent = name;
+        document.getElementById('approve-student-email').textContent = email;
+        document.getElementById('approve-courses-preview').classList.add('hidden');
+
+        const sel = document.getElementById('approve-class');
+        sel.innerHTML = '<option value="">Select a class...</option>';
+        const classes = await loadClasses();
+        classes.forEach(c => {
+            if (c.status === 'active') {
+                sel.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
+            }
+        });
+        Modal.open('approve-modal');
     }
+
+    async function loadCoursesForClass(classId) {
+        const preview = document.getElementById('approve-courses-preview');
+        const list = document.getElementById('approve-courses-list');
+        if (!classId) { preview.classList.add('hidden'); return; }
+
+        if (classCoursesCache[classId]) {
+            renderCourses(classCoursesCache[classId]);
+            return;
+        }
+        list.innerHTML = '<span class="text-xs text-gray-400">Loading courses...</span>';
+        preview.classList.remove('hidden');
+        const d = await API.get('/api/admin/classes/' + classId);
+        if (d && d.success && d.data && d.data.subjects) {
+            classCoursesCache[classId] = d.data.subjects;
+            renderCourses(d.data.subjects);
+        } else {
+            list.innerHTML = '<span class="text-xs text-gray-400">No courses found</span>';
+        }
+    }
+
+    function renderCourses(subjects) {
+        const list = document.getElementById('approve-courses-list');
+        const preview = document.getElementById('approve-courses-preview');
+        if (!subjects || subjects.length === 0) {
+            list.innerHTML = '<span class="text-xs text-gray-400">No courses assigned to this class yet</span>';
+        } else {
+            list.innerHTML = subjects.map(s =>
+                `<span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-medium"><i class="fas fa-book text-[10px]"></i>${escapeHtml(s.name || s.subject_name)}</span>`
+            ).join('');
+        }
+        preview.classList.remove('hidden');
+    }
+
+    document.getElementById('approve-class').addEventListener('change', function() {
+        loadCoursesForClass(this.value);
+    });
+
+    document.getElementById('approve-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('approve-id').value;
+        const classId = document.getElementById('approve-class').value;
+        if (!classId) { Toast.error('Please select a class.'); return; }
+        const btn = document.getElementById('approve-submit-btn');
+        setLoading(btn, true);
+        const d = await API.post('/api/admin/registrations/' + id + '/approve', { class_id: classId });
+        setLoading(btn, false);
+        if (d && d.success) { Toast.success(d.message); Modal.close('approve-modal'); loadStats(); loadPending(); }
+        else if (d) Toast.error(d.message);
+    });
 
     function showDeclineModal(id) {
         document.getElementById('decline-id').value = id;
@@ -99,7 +169,7 @@
     }
 
     window.loadPending = loadPending;
-    window.approveStudent = approveStudent;
+    window.showApproveModal = showApproveModal;
     window.showDeclineModal = showDeclineModal;
 
     document.getElementById('decline-form').addEventListener('submit', async (e) => {

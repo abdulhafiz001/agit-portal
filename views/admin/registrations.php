@@ -77,6 +77,38 @@ $pageTitle = 'New Registrations';
     </div>
 </div>
 
+<!-- Approve Modal -->
+<div id="approve-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+        <div class="p-6 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900">Approve Student</h3>
+            <p class="text-sm text-gray-500 mt-1">Assign a class to this student before approving. They will be notified with their class and courses.</p>
+        </div>
+        <form id="approve-form" class="p-6">
+            <input type="hidden" id="approve-id" value="">
+            <div class="mb-2">
+                <p class="text-sm font-medium text-gray-700 mb-1">Student</p>
+                <p id="approve-student-name" class="text-sm text-gray-900 font-semibold"></p>
+                <p id="approve-student-email" class="text-sm text-gray-500"></p>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1.5">Assign Class <span class="text-red-500">*</span></label>
+                <select id="approve-class" required class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 outline-none appearance-none cursor-pointer bg-white">
+                    <option value="">Select a class...</option>
+                </select>
+            </div>
+            <div id="approve-courses-preview" class="mt-4 hidden">
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Courses in this class</p>
+                <div id="approve-courses-list" class="flex flex-wrap gap-2"></div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button type="button" onclick="Modal.close('approve-modal')" class="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
+                <button type="submit" id="approve-submit-btn" class="flex-1 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"><i class="fas fa-check mr-1"></i>Approve & Assign</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Decline Modal -->
 <div id="decline-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-overlay">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">

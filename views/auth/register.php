@@ -5,7 +5,6 @@ if ($regEnabled !== '1' && $regEnabled !== 'enabled') {
     header('Location: ' . APP_URL . '/login/student');
     exit;
 }
-$classes = $db->query("SELECT id, name FROM classes WHERE status = 'active' ORDER BY name")->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -107,29 +106,13 @@ $classes = $db->query("SELECT id, name FROM classes WHERE status = 'active' ORDE
                             </div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Class <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-graduation-cap"></i></span>
-                                <select id="r-class" required
-                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-gray-900 appearance-none cursor-pointer bg-white">
-                                    <option value="">Select Class</option>
-                                    <?php foreach ($classes as $c): ?>
-                                    <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"><i class="fas fa-chevron-down text-xs"></i></span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-phone"></i></span>
-                                <input type="tel" id="r-phone"
-                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-gray-900 placeholder-gray-400"
-                                    placeholder="+234...">
-                            </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-phone"></i></span>
+                            <input type="tel" id="r-phone"
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm text-gray-900 placeholder-gray-400"
+                                placeholder="+234...">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -193,7 +176,6 @@ $classes = $db->query("SELECT id, name FROM classes WHERE status = 'active' ORDE
                     name: document.getElementById('r-name').value,
                     email: document.getElementById('r-email').value,
                     gender: document.getElementById('r-gender').value,
-                    class_id: document.getElementById('r-class').value,
                     phone: document.getElementById('r-phone').value,
                     password: pw
                 });
