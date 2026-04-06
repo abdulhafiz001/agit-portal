@@ -31,18 +31,34 @@ if (strpos($route, '/api/auth/login') === 0 && $method === 'POST') {
 } elseif (strpos($route, '/api/auth/logout') === 0 && $method === 'POST') {
     $logoutData = json_decode(file_get_contents('php://input') ?: '{}', true) ?: [];
     $sessionContext = in_array($logoutData['role'] ?? '', ['admin', 'student', 'lecturer']) ? $logoutData['role'] : null;
-} elseif (strpos($route, '/api/admin/') === 0 || strpos($route, '/login/admin') === 0) {
+} elseif (strpos($route, '/api/admin/') === 0 || strpos($route, '/login/admin') === 0 || strpos($route, '/admin/') === 0 || $route === '/admin') {
     $sessionContext = 'admin';
-} elseif (strpos($route, '/api/student/') === 0 || strpos($route, '/login/student') === 0 || strpos($route, '/register/') === 0) {
+} elseif (strpos($route, '/api/student/') === 0 || strpos($route, '/login/student') === 0 || strpos($route, '/register/') === 0 || strpos($route, '/student/') === 0 || $route === '/student') {
     $sessionContext = 'student';
-} elseif (strpos($route, '/api/faculty/') === 0 || strpos($route, '/login/faculty') === 0) {
+} elseif (strpos($route, '/api/faculty/') === 0 || strpos($route, '/login/faculty') === 0 || strpos($route, '/faculty/') === 0 || $route === '/faculty') {
     $sessionContext = 'lecturer';
 } elseif (strpos($route, '/api/profile') === 0) {
-    // Profile used by all roles - use whichever session cookie is present
-    $sessionContext = 'admin';
-    if (!empty($_COOKIE[SESSION_NAME . '_student'])) $sessionContext = 'student';
-    elseif (!empty($_COOKIE[SESSION_NAME . '_lecturer'])) $sessionContext = 'lecturer';
-    elseif (!empty($_COOKIE[SESSION_NAME . '_admin'])) $sessionContext = 'admin';
+    // Profile API used by all roles - determine from Referer which panel is calling
+    $sessionContext = null;
+    $referer = $_SERVER['HTTP_REFERER'] ?? '';
+    $refPath = (string) parse_url($referer, PHP_URL_PATH);
+    if ($basePath && strpos($refPath, $basePath) === 0) {
+        $refPath = substr($refPath, strlen($basePath));
+    }
+    if (strpos($refPath, '/admin') === 0) {
+        $sessionContext = 'admin';
+    } elseif (strpos($refPath, '/faculty') === 0) {
+        $sessionContext = 'lecturer';
+    } elseif (strpos($refPath, '/student') === 0) {
+        $sessionContext = 'student';
+    }
+    if (!$sessionContext) {
+        // Fallback: check which session cookie exists
+        if (!empty($_COOKIE[SESSION_NAME . '_admin'])) $sessionContext = 'admin';
+        elseif (!empty($_COOKIE[SESSION_NAME . '_lecturer'])) $sessionContext = 'lecturer';
+        elseif (!empty($_COOKIE[SESSION_NAME . '_student'])) $sessionContext = 'student';
+        else $sessionContext = 'admin';
+    }
 }
 
 initSession($sessionContext);
