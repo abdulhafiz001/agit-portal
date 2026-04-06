@@ -210,9 +210,8 @@ function processForgotPasswordRequest($email, $role) {
         }
     }
     $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-    $expiresAt = date('Y-m-d H:i:s', time() + 900);
-    $db->prepare("INSERT INTO password_reset_codes (user_type, user_id, email, code, expires_at) VALUES (?, ?, ?, ?, ?)")
-        ->execute([$role, $user['id'], $email, $code, $expiresAt]);
+    $db->prepare("INSERT INTO password_reset_codes (user_type, user_id, email, code, expires_at) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))")
+        ->execute([$role, $user['id'], $email, $code]);
     require_once __DIR__ . '/../helpers/mail.php';
     require_once __DIR__ . '/../helpers/email_templates.php';
     $body = getForgotPasswordEmailTemplate($code);
