@@ -72,20 +72,62 @@
                 el.innerHTML = '<div class="text-center py-12 text-gray-500"><i class="fas fa-inbox text-4xl mb-3 text-gray-300"></i><p>No pending registrations</p></div>';
                 return;
             }
-            el.innerHTML = '<div class="space-y-4">' + list.map(s => `
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-gray-50 rounded-xl">
-                    <div>
-                        <div class="font-semibold text-gray-900">${escapeHtml(s.name)}</div>
-                        <div class="text-sm text-gray-500">${escapeHtml(s.email)}</div>
-                        <div class="text-sm text-gray-500">${escapeHtml(s.phone || 'No phone')}</div>
-                        <div class="text-xs text-gray-400 mt-1">Registered ${formatDate(s.created_at)}</div>
+            el.innerHTML = '<div class="space-y-4">' + list.map(s => {
+                const verified = Number(s.email_verified) === 1;
+                const badgeClass = verified
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-amber-50 text-amber-700 border border-amber-200';
+                const badgeIcon = verified ? 'fa-circle-check' : 'fa-envelope-open-text';
+                const badgeText = verified ? 'Email verified' : 'Email unverified';
+                const initials = (s.name || '?').split(' ').map(part => part.charAt(0)).join('').slice(0, 2).toUpperCase();
+                return `
+                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <div class="p-5">
+                        <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
+                            <div class="flex gap-4 min-w-0">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0">
+                                    ${escapeHtml(initials)}
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h4 class="text-base font-semibold text-gray-900">${escapeHtml(s.name)}</h4>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${badgeClass}">
+                                            <i class="fas ${badgeIcon}"></i>
+                                            ${badgeText}
+                                        </span>
+                                    </div>
+                                    <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                        <div class="flex items-center gap-2 text-gray-600 min-w-0">
+                                            <i class="fas fa-envelope text-gray-400 w-4"></i>
+                                            <span class="truncate">${escapeHtml(s.email)}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-phone text-gray-400 w-4"></i>
+                                            <span>${escapeHtml(s.phone || 'No phone provided')}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-layer-group text-gray-400 w-4"></i>
+                                            <span>${escapeHtml(s.class_name || 'Class will be assigned on approval')}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <i class="fas fa-calendar-alt text-gray-400 w-4"></i>
+                                            <span>Registered ${formatDate(s.created_at)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col sm:flex-row xl:flex-col gap-2 xl:min-w-[180px]">
+                                <button onclick="window.showApproveModal(${s.id}, '${escapeHtml(s.name).replace(/'/g, "\\'")}', '${escapeHtml(s.email).replace(/'/g, "\\'")}')" class="px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700">
+                                    <i class="fas fa-check mr-1"></i>Approve
+                                </button>
+                                <button onclick="window.showDeclineModal(${s.id})" class="px-4 py-2.5 bg-white text-red-600 border border-red-200 rounded-xl text-sm font-medium hover:bg-red-50">
+                                    <i class="fas fa-times mr-1"></i>Decline
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex gap-2">
-                        <button onclick="window.showApproveModal(${s.id}, '${escapeHtml(s.name).replace(/'/g, "\\'")}', '${escapeHtml(s.email).replace(/'/g, "\\'")}')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"><i class="fas fa-check mr-1"></i>Accept</button>
-                        <button onclick="window.showDeclineModal(${s.id})" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700"><i class="fas fa-times mr-1"></i>Decline</button>
-                    </div>
-                </div>
-            `).join('') + '</div>';
+                </div>`;
+            }).join('') + '</div>';
         } catch (e) {
             console.error('loadPending error:', e);
             el.innerHTML = '<div class="text-center py-12 text-red-600"><i class="fas fa-exclamation-circle text-4xl mb-3"></i><p>Failed to load pending registrations.</p><button onclick="window.loadPending()" class="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200">Retry</button></div>';

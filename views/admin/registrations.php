@@ -1,11 +1,35 @@
 <?php
 $pageTitle = 'New Registrations';
 ?>
-<div class="p-6">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">New Student Registrations</h1>
-            <p class="text-gray-500 text-sm mt-1">Review and approve or decline pending student applications</p>
+<div class="p-6 space-y-6">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold tracking-wide uppercase">
+                    <i class="fas fa-user-check text-[11px]"></i>
+                    Admissions Queue
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mt-4">New Student Registrations</h1>
+                <p class="text-gray-600 text-sm mt-2 max-w-2xl">
+                    Review pending applications, confirm whether the student's email has been verified, and assign the correct class before approval.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm min-w-full lg:min-w-[360px]">
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700">
+                    <div class="font-semibold flex items-center gap-2">
+                        <i class="fas fa-envelope-circle-check"></i>
+                        Verified Email
+                    </div>
+                    <p class="mt-1 text-emerald-600">Student completed email verification and is ready for review.</p>
+                </div>
+                <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-700">
+                    <div class="font-semibold flex items-center gap-2">
+                        <i class="fas fa-envelope-open-text"></i>
+                        Unverified Email
+                    </div>
+                    <p class="mt-1 text-amber-600">Student registered but has not yet completed email verification.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -66,10 +90,24 @@ $pageTitle = 'New Registrations';
     </div>
 
     <!-- Pending List -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div class="p-6 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900">Pending Approvals</h3>
-            <p class="text-sm text-gray-500 mt-1">Students awaiting admin approval</p>
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-6 border-b border-gray-200 bg-gray-50/70">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">Pending Approvals</h3>
+                    <p class="text-sm text-gray-500 mt-1">Students awaiting admin approval and class assignment</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <i class="fas fa-circle text-[8px]"></i>
+                        Email verified
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                        <i class="fas fa-circle text-[8px]"></i>
+                        Email unverified
+                    </span>
+                </div>
+            </div>
         </div>
         <div id="pending-list" class="p-6">
             <div class="text-center py-12 text-gray-400"><div class="spinner mx-auto mb-3"></div>Loading...</div>
