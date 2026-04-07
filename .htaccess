@@ -3,7 +3,7 @@ Options -Indexes
 
 RewriteEngine On
 # LOCAL: RewriteBase /agit-portal/  |  PRODUCTION: RewriteBase /portal/
-RewriteBase /agit-portal/
+RewriteBase /portal/
 # SetEnv APP_URL only in production vhost; app auto-detects from request otherwise
 
 
