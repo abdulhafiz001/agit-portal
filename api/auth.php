@@ -283,7 +283,7 @@ function handleGetVerificationDetails() {
 function handleVerifyEmail() {
     $data = getPostData();
     $token = trim($data['token'] ?? '');
-    $code = trim($data['code'] ?? '');
+    $code = preg_replace('/\D+/', '', (string) ($data['code'] ?? ''));
 
     if (!$token || !$code) {
         jsonResponse(['success' => false, 'message' => 'Token and code are required.'], 400);
@@ -303,7 +303,10 @@ function handleVerifyEmail() {
         jsonResponse(['success' => false, 'message' => 'Invalid or expired verification link. Please register again.'], 400);
     }
 
-    if ($row['code'] !== $code) {
+    $submittedCode = str_pad(substr($code, 0, 6), 6, '0', STR_PAD_LEFT);
+    $storedCode = str_pad(preg_replace('/\D+/', '', (string) ($row['code'] ?? '')), 6, '0', STR_PAD_LEFT);
+
+    if ($storedCode !== $submittedCode) {
         jsonResponse(['success' => false, 'message' => 'Invalid verification code. Please try again.'], 400);
     }
 
