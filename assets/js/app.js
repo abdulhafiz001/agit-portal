@@ -11,6 +11,8 @@ var APP_URL = (typeof window !== 'undefined' && window.APP_URL) || '/agit-portal
 // ============================================================
 const Toast = {
     container: null,
+    lastMessageKey: null,
+    lastShownAt: 0,
 
     init() {
         if (!this.container) {
@@ -23,6 +25,13 @@ const Toast = {
 
     show(message, type = 'success', duration = 4000) {
         this.init();
+        const messageKey = `${type}:${String(message || '').trim()}`;
+        const now = Date.now();
+        if (this.lastMessageKey === messageKey && (now - this.lastShownAt) < 1200) {
+            return;
+        }
+        this.lastMessageKey = messageKey;
+        this.lastShownAt = now;
         const toast = document.createElement('div');
         const icons = {
             success: '<i class="fas fa-check-circle"></i>',
@@ -143,20 +152,20 @@ const API = {
         return this.request(url, { ...options, method: 'GET' });
     },
 
-    post(url, body) {
-        return this.request(url, { method: 'POST', body });
+    post(url, body, options = {}) {
+        return this.request(url, { ...options, method: 'POST', body });
     },
 
-    put(url, body) {
-        return this.request(url, { method: 'PUT', body });
+    put(url, body, options = {}) {
+        return this.request(url, { ...options, method: 'PUT', body });
     },
 
-    delete(url) {
-        return this.request(url, { method: 'DELETE' });
+    delete(url, options = {}) {
+        return this.request(url, { ...options, method: 'DELETE' });
     },
 
-    upload(url, formData) {
-        return this.request(url, { method: 'POST', body: formData });
+    upload(url, formData, options = {}) {
+        return this.request(url, { ...options, method: 'POST', body: formData });
     }
 };
 

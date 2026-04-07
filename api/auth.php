@@ -123,9 +123,8 @@ function handleRegister() {
         if ($hasEmailVerification) {
             $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             $verifyToken = bin2hex(random_bytes(32));
-            $expiresAt = date('Y-m-d H:i:s', time() + 900);
-            $db->prepare("INSERT INTO email_verification_codes (token, student_id, email, code, expires_at) VALUES (?, ?, ?, ?, ?)")
-                ->execute([$verifyToken, $studentId, $email, $code, $expiresAt]);
+            $db->prepare("INSERT INTO email_verification_codes (token, student_id, email, code, expires_at) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))")
+                ->execute([$verifyToken, $studentId, $email, $code]);
 
             $verifyEmailData = [
                 'to' => $email,
@@ -310,8 +309,11 @@ function handleVerifyEmail() {
 
     $db->prepare("UPDATE email_verification_codes SET used_at = NOW() WHERE id = ?")->execute([$row['id']]);
 
-    $_SESSION['registration_verified'] = (int) $row['student_id'];
-    jsonResponse(['success' => true, 'message' => 'Email verified successfully!', 'redirect' => APP_URL . '/register/success']);
+    jsonResponse([
+        'success' => true,
+        'message' => 'Email verified successfully. Please wait for admin approval before logging in.',
+        'redirect' => APP_URL . '/login/student?verified=1'
+    ]);
 }
 
 /**
@@ -357,9 +359,8 @@ function handleResendVerificationCode() {
     }
 
     $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-    $expiresAt = date('Y-m-d H:i:s', time() + 900);
-    $db->prepare("UPDATE email_verification_codes SET email = ?, code = ?, expires_at = ? WHERE id = ?")
-        ->execute([$email, $code, $expiresAt, $row['id']]);
+    $db->prepare("UPDATE email_verification_codes SET email = ?, code = ?, expires_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE) WHERE id = ?")
+        ->execute([$email, $code, $row['id']]);
 
     if ($newEmail) {
         $db->prepare("UPDATE students SET email = ? WHERE id = ?")->execute([$email, $row['student_id']]);

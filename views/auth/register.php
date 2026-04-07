@@ -178,7 +178,7 @@ if ($regEnabled !== '1' && $regEnabled !== 'enabled') {
                     gender: document.getElementById('r-gender').value,
                     phone: document.getElementById('r-phone').value,
                     password: pw
-                });
+                }, { silent: true });
 
                 setLoading(btn, false);
 

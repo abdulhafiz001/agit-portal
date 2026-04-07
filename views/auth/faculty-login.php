@@ -149,7 +149,7 @@
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
                 role: 'lecturer'
-            });
+            }, { silent: true });
 
             setLoading(btn, false);
             

@@ -247,7 +247,6 @@ if ($regEnabled !== '1' && $regEnabled !== 'enabled') {
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        if (typeof Toast !== 'undefined') Toast.success(data.message);
                         window.location.href = data.redirect || (APP_URL + '/register/success');
                     } else {
                         showMessage(null, data.message || 'Invalid code.', 'error');

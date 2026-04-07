@@ -70,6 +70,12 @@
                     <?= htmlspecialchars($loginError) ?>
                 </div>
                 <?php endif; ?>
+                <?php if (!empty($_GET['verified']) && $_GET['verified'] === '1'): ?>
+                <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    Email verified successfully. Please wait for admin approval before logging in.
+                </div>
+                <?php endif; ?>
                 <form id="login-form" method="post" action="<?= APP_URL ?>/login/student" class="space-y-5">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
@@ -117,6 +123,13 @@
                 </div>
                 <?php endif; ?>
 
+                <?php if (!empty($_GET['verified']) && $_GET['verified'] === '1'): ?>
+                <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-sm flex items-start gap-2">
+                    <i class="fas fa-circle-check mt-0.5"></i>
+                    <span>Your email has been verified successfully. Please wait for admin approval before logging in.</span>
+                </div>
+                <?php endif; ?>
+
                 <?php
                 $db = getDB();
                 $regEnabled = $db->query("SELECT setting_value FROM settings WHERE setting_key = 'allow_registration'")->fetchColumn();
@@ -157,7 +170,7 @@
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
                 role: 'student'
-            });
+            }, { silent: true });
 
             setLoading(btn, false);
             

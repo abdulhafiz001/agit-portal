@@ -7,10 +7,16 @@
 require_once __DIR__ . '/../helpers/mail.php';
 require_once __DIR__ . '/../helpers/email_templates.php';
 
-function generateNextMatricNo() {
-    $db = getDB();
+function generateNextMatricNo($db = null) {
+    $db = $db ?: getDB();
     $year = date('Y');
-    $stmt = $db->prepare("SELECT matric_no FROM students WHERE matric_no LIKE ? AND approval_status = 'approved' ORDER BY id DESC LIMIT 1");
+    $stmt = $db->prepare("
+        SELECT matric_no
+        FROM students
+        WHERE matric_no LIKE ?
+        ORDER BY CAST(SUBSTRING_INDEX(matric_no, '/', -1) AS UNSIGNED) DESC
+        LIMIT 1
+    ");
     $stmt->execute(["AGIT/{$year}/%"]);
     $last = $stmt->fetchColumn();
     if (!$last) {
@@ -21,6 +27,28 @@ function generateNextMatricNo() {
         return "AGIT/{$year}/" . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
     return "AGIT/{$year}/0001";
+}
+
+function acquireMatricNoLock($db) {
+    $lockName = 'agit_matric_no_' . date('Y');
+    $stmt = $db->prepare("SELECT GET_LOCK(?, 10)");
+    $stmt->execute([$lockName]);
+    if ((int) $stmt->fetchColumn() !== 1) {
+        throw new Exception('Could not acquire matric number lock. Please try again.');
+    }
+    return $lockName;
+}
+
+function releaseMatricNoLock($db, $lockName) {
+    if (!$lockName) {
+        return;
+    }
+    try {
+        $stmt = $db->prepare("SELECT RELEASE_LOCK(?)");
+        $stmt->execute([$lockName]);
+    } catch (Throwable $e) {
+        // Ignore release errors; connection cleanup will release the lock.
+    }
 }
 
 function processApproveStudent($token) {
@@ -37,17 +65,23 @@ function processApproveStudent($token) {
         return ['success' => false, 'message' => 'Invalid or expired link. This approval link may have already been used.'];
     }
 
-    $matricNo = generateNextMatricNo();
-    $db->beginTransaction();
+    $lockName = null;
     try {
+        $lockName = acquireMatricNoLock($db);
+        $db->beginTransaction();
+        $matricNo = generateNextMatricNo($db);
         $db->prepare("UPDATE students SET approval_status = 'approved', matric_no = ?, approved_at = NOW() WHERE id = ?")
             ->execute([$matricNo, $row['student_id']]);
         $db->prepare("UPDATE student_approval_tokens SET used_at = NOW() WHERE id = ?")
             ->execute([$row['token_id']]);
         $db->commit();
     } catch (Exception $e) {
-        $db->rollBack();
-        return ['success' => false, 'message' => 'An error occurred. Please try again.'];
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        return ['success' => false, 'message' => $e->getMessage() ?: 'An error occurred. Please try again.'];
+    } finally {
+        releaseMatricNoLock($db, $lockName);
     }
 
     $stmt = $db->prepare("SELECT name, email FROM students WHERE id = ?");

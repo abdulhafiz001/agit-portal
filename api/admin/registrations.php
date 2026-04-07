@@ -68,12 +68,24 @@ function getPendingRegistrations() {
         }
 
         $hasCreatedAt = (bool) $db->query("SHOW COLUMNS FROM students LIKE 'created_at'")->fetch();
+        $hasEmailVerification = (bool) $db->query("SHOW TABLES LIKE 'email_verification_codes'")->fetch();
         $orderBy = $hasCreatedAt ? 'ORDER BY s.created_at DESC' : 'ORDER BY s.id DESC';
+        $verificationSelect = $hasEmailVerification
+            ? ", COALESCE(ev.email_verified, 0) as email_verified"
+            : ", 1 as email_verified";
+        $verificationJoin = $hasEmailVerification
+            ? "LEFT JOIN (
+                SELECT student_id, MAX(CASE WHEN used_at IS NOT NULL THEN 1 ELSE 0 END) as email_verified
+                FROM email_verification_codes
+                GROUP BY student_id
+            ) ev ON ev.student_id = s.id"
+            : "";
 
         $stmt = $db->prepare("
-            SELECT s.id, s.name, s.email, s.phone, " . ($hasCreatedAt ? "s.created_at" : "NULL as created_at") . ", c.name as class_name
+            SELECT s.id, s.name, s.email, s.phone, " . ($hasCreatedAt ? "s.created_at" : "NULL as created_at") . ", c.name as class_name {$verificationSelect}
             FROM students s
             LEFT JOIN classes c ON c.id = s.class_id
+            {$verificationJoin}
             WHERE s.approval_status = 'pending'
             $orderBy
         ");
@@ -109,9 +121,22 @@ function approveRegistration($id) {
         if (!$s) jsonResponse(['success' => false, 'message' => 'Student not found.'], 404);
         if ($s['approval_status'] !== 'pending') jsonResponse(['success' => false, 'message' => 'Student is not pending approval.'], 400);
 
-        $matricNo = generateNextMatricNo();
-        $db->prepare("UPDATE students SET approval_status = 'approved', matric_no = ?, class_id = ?, approved_at = NOW(), approved_by = ? WHERE id = ?")
-            ->execute([$matricNo, $classId, $_SESSION['user_id'], $id]);
+        $lockName = null;
+        try {
+            $lockName = acquireMatricNoLock($db);
+            $db->beginTransaction();
+            $matricNo = generateNextMatricNo($db);
+            $db->prepare("UPDATE students SET approval_status = 'approved', matric_no = ?, class_id = ?, approved_at = NOW(), approved_by = ? WHERE id = ?")
+                ->execute([$matricNo, $classId, $_SESSION['user_id'], $id]);
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        } finally {
+            releaseMatricNoLock($db, $lockName);
+        }
 
         $courses = $db->prepare("
             SELECT sub.name, sub.code FROM class_subjects cs

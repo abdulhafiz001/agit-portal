@@ -146,7 +146,7 @@
                 email: document.getElementById('email').value,
                 password: document.getElementById('password').value,
                 role: 'admin'
-            });
+            }, { silent: true });
 
             setLoading(btn, false);
             
